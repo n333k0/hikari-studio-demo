@@ -302,8 +302,8 @@ ul { list-style: none; }
   scroll-behavior: smooth;
   scrollbar-width: none;
   padding-bottom: var(--sp-1);
-  margin-inline: calc(-1 * var(--gutter));
-  padding-inline: var(--gutter);
+  /* no negative-margin bleed: the track keeps the container gutter on both
+     sides so the first card lines up with the section heading */
 }
 .track::-webkit-scrollbar { display: none; }
 
@@ -550,6 +550,9 @@ ul { list-style: none; }
   .brand__logo { height: 44px; }
   .hero { min-height: 86vh; background-position: center center; }
   .hero::before { background: radial-gradient(120% 80% at 50% 50%, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.52) 100%); }
+  /* stack CTA buttons vertically on mobile */
+  .hero__cta { flex-direction: column; align-items: center; width: 100%; }
+  .hero__cta .btn { width: min(100%, 320px); }
   .footer__cols { grid-template-columns: repeat(3, 1fr); row-gap: var(--sp-6); }
   .track--products { grid-auto-columns: minmax(220px, 46%); }
   .track--cats { grid-auto-columns: minmax(200px, 60%); }
