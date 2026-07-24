@@ -1,5 +1,10 @@
 # CLAUDE.md — Hikari Studio site
 
+> **Operating manual: read [`docs/change-workflow.md`](docs/change-workflow.md) FIRST**, then
+> `docs/website-spec.md`, `docs/protected-regions.md`, `docs/known-regressions.md`,
+> `docs/verification-policy.md`. Log new lessons in `docs/project-lessons.md`. Those docs
+> are the source of truth; this file is the quick reference.
+
 Conventions and hard-won gotchas for this project. Read before editing so we don't
 re-litigate fixes we already made.
 
