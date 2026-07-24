@@ -541,18 +541,23 @@ ul { list-style: none; }
 
 /* giant expanded wordmark spanning the footer width (crisp text, not a blurry PNG) */
 .footer__wordmark {
-  color: #fff;
-  font-weight: 800;
-  text-transform: uppercase;
-  white-space: nowrap;
-  text-align: center;
-  line-height: 0.78;
-  letter-spacing: -0.03em;
-  font-size: 13.7vw;
-  padding: 0 var(--gutter);
-  margin-top: var(--sp-6);
-  overflow: hidden;
+  padding: var(--sp-6) var(--gutter) var(--gutter);
   user-select: none;
+}
+/* SVG scales to the container's content width, so the empty space on the
+   left, right and bottom all equal the footer gutter (no clipping) */
+.footer__wordmark-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.footer__wordmark-svg text {
+  fill: #fff;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 132px;
+  letter-spacing: -3px;
 }
 
 /* ============================================================
