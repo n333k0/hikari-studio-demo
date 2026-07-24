@@ -423,16 +423,14 @@
 (function () {
   // Sticky header: transparent-over-hero -> solid on scroll
   var header = document.getElementById('header');
-  var hero = document.getElementById('hero');
+  var marquee = document.querySelector('.marquee');
   function onScroll() {
-    var trigger = hero ? hero.offsetHeight * 0.5 : 200;
-    if (window.scrollY > trigger) {
-      header.classList.add('header--solid');
-      header.classList.remove('header--over');
-    } else {
-      header.classList.remove('header--solid');
-      header.classList.add('header--over');
-    }
+    // go solid once the marquee (just below the hero) scrolls up into view
+    var solid = marquee
+      ? marquee.getBoundingClientRect().top <= window.innerHeight * 0.7
+      : window.scrollY > 300;
+    header.classList.toggle('header--solid', solid);
+    header.classList.toggle('header--over', !solid);
   }
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });

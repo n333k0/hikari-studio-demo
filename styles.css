@@ -182,7 +182,7 @@ ul { list-style: none; }
   display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--sp-4);
 }
 .brand { justify-self: start; display: flex; align-items: center; }
-.brand__logo { height: 20px; width: auto; display: block; transition: filter .25s ease; }
+.brand__logo { height: 50px; width: auto; display: block; transition: filter .25s ease; }
 .nav { justify-self: center; display: flex; align-items: center; gap: var(--sp-5); }
 .nav a { font-size: 1.5rem; color: var(--text-t1); position: relative; transition: color .2s ease; }
 .nav a:hover { color: var(--accent); }
