@@ -259,7 +259,7 @@ ul { list-style: none; }
 .hero__copy { max-width: 64rem; margin-inline: auto; }
 .hero__eyebrow { color: rgba(255,255,255,0.72); margin-bottom: var(--sp-3); }
 .hero h1 {
-  font-size: clamp(11.6rem, 8vw, 9rem);
+  font-size: clamp(4.6rem, 9vw, 11.6rem);
   line-height: 0.96;
   font-weight: 400;
   letter-spacing: -0.02em;
@@ -603,6 +603,20 @@ ul { list-style: none; }
   .footer__cols { grid-template-columns: repeat(2, 1fr); }
   .track--products { grid-auto-columns: minmax(70%, 78%); }
   .swatch__dot { width: 52px; height: 52px; }
+}
+
+/* ============================================================
+   Tablet (641–1024px) — denser than mobile, roomier than a phone.
+   Overrides the ≤1024 mobile rules for this range (placed after them).
+   Keeps the mobile header (hamburger). Desktop >1024 and mobile ≤640 unchanged.
+   ============================================================ */
+@media (min-width: 641px) and (max-width: 1024px) {
+  :root { --gutter: 24px; }
+  .hero__cta { flex-direction: row; }              /* CTAs side by side, hugging text */
+  .values { grid-template-columns: repeat(3, 1fr); } /* 3 value tiles across */
+  .track--products { grid-auto-columns: minmax(220px, 33%); } /* ~3 product cards */
+  .track--cats { grid-auto-columns: minmax(200px, 33%); }     /* ~3 category cards */
+  .track--ugc { grid-auto-columns: minmax(150px, 24%); }      /* ~4 UGC tiles */
 }
 
 /* respect reduced motion */

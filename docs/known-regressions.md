@@ -20,10 +20,11 @@ task. Check this before "fixing" something that looks off — it may be known.
 - Mobile CTAs forced to a fixed 320px width: they must hug their text.
 - Hero used images with baked-in promotional text: only use clean (text-free)
   hero images and add our own overlay.
+- Malformed `clamp(min, pref, max)` where min > max silently resolves to `min`
+  (it looked like a fixed 116px h1 on all widths). Always keep min ≤ max.
+  Current hero h1: `clamp(4.6rem, 9vw, 11.6rem)`.
 
 ## Known pre-existing issues (NOT introduced by current tasks)
-- `.hero h1` = `clamp(11.6rem, 8vw, 9rem)` — min > max, so it is always 116px;
-  "Lishuran" is oversized/edge-clipped on mobile. Confirm intent before changing.
 - Header icons, hamburger, and search are visual-only (no menu/search behavior).
 - Newsletter form is inert (`onsubmit="return false"`).
 - Many nav/footer links are `#` placeholders or in-page anchors.

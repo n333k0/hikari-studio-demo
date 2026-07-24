@@ -53,11 +53,20 @@ Hidden by default (via `hidden` attr): #historia (mission), #acabado (finish rai
   spaces, made with real rice paper." Sentence case, balanced line break.
 
 ## Responsive contract
-- >1024px: desktop header; hero 100vh; 32px gutter; multi-card carousels;
-  footer 5 cols.
-- ≤1024px (incl. tablet): mobile header; 16px gutter; hero ~86vh; footer 3 cols.
-- ≤640px: hero CTAs stacked + hug text; footer 2 cols; ~1 card per carousel view.
-- All widths: zero horizontal overflow; hero + wordmark keep equal side gutters.
+Three breakpoints: desktop (>1024px), tablet (641–1024px), mobile (≤640px).
+- **Desktop >1024px:** desktop header (logo left · nav center · icons right);
+  hero 100vh; 32px gutter; multi-card carousels; 3-col value tiles; footer 5 cols.
+- **Tablet 641–1024px:** mobile header (hamburger); 24px gutter; hero ~86vh;
+  hero CTAs side-by-side (hugging text); 3-col value tiles; carousels show ~3
+  cards; footer 3 cols. (Dedicated `@media (min-width:641px) and (max-width:1024px)`
+  block, placed after the ≤1024 rules so it overrides them.)
+- **Mobile ≤640px:** mobile header; 16px gutter; hero CTAs stacked + hug text;
+  value tiles single column; ~1 card per carousel view; footer 2 cols.
+- The ≤1024px block holds the shared mobile+tablet baseline; the ≤640px and the
+  641–1024px blocks specialize it. All widths: zero horizontal overflow; hero +
+  wordmark keep equal side gutters.
+- H1 hero title uses `clamp(4.6rem, 9vw, 11.6rem)` — ~116px cap on desktop,
+  scales down to fit mobile.
 
 ## Deploy
 Repo n333k0/hikari-studio-demo (public), GitHub Pages main/root.
