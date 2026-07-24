@@ -232,7 +232,7 @@ ul { list-style: none; }
   text-align: center;
   overflow: hidden;
   color: #fff;
-  background: #2a2320 url("images/hero/hero-1.png") center center / cover no-repeat;
+  background: #2a2320 url("images/hero/hero-3.png") center center / cover no-repeat;
 }
 /* top scrim (header legibility) + centered vignette (hero text legibility) */
 .hero::before {
