@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hikari Studio · Lámparas de papel, hechas a mano</title>
+<meta name="description" content="Lámparas de papel de arroz teñidas a mano, de inspiración japonesa. Hechas a mano en Buenos Aires. Envíos a todo el país.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============================ HEADER ============================ -->
+<header class="header header--over" id="header">
+  <div class="header__inner">
+    <a class="brand" href="#top" aria-label="Hikari Studio — inicio">
+      <img class="brand__logo" src="images/logo.png" alt="Hikari Studio">
+    </a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#novedades">Novedades<span class="badge">Nuevo</span></a>
+      <a href="#familias">Lámparas</a>
+      <a href="#proceso">Cómo se hace</a>
+      <a href="#historia">Estudio</a>
+      <a href="#tutoriales">Tutoriales</a>
+    </nav>
+    <div class="header__utils">
+      <a href="#familias" aria-label="Buscar"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></a>
+      <a href="#" aria-label="Mi cuenta"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+      <a href="#" aria-label="Carrito"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></a>
+      <button class="menu-toggle" aria-label="Menú"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============================ HERO ============================ -->
+  <section class="hero" id="hero">
+    <div class="hero__inner">
+      <div class="hero__copy">
+        <p class="eyebrow hero__eyebrow">Presentamos</p>
+        <h1>Lishuran</h1>
+        <p class="hero__sub">Papel de arroz plegado a mano y teñido en baño de té. Una gota de luz cálida, disponible en dos tamaños — Ø30 y Ø60&nbsp;cm.</p>
+        <div class="hero__cta">
+          <a class="btn btn--contrast" href="#novedades">Descubrir</a>
+          <a class="btn btn--outline" href="#familias">Ver todas las lámparas</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= MARQUEE / TRUST ======================= -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      <span class="marquee__item">Papel de arroz washi</span>
+      <span class="marquee__item">Teñido a mano en baño de té</span>
+      <span class="marquee__item">Estructura de hierro</span>
+      <span class="marquee__item">Portalámpara E27</span>
+      <span class="marquee__item">Hecho en Buenos Aires</span>
+      <span class="marquee__item">Envíos a todo el país</span>
+      <!-- duplicate for seamless loop -->
+      <span class="marquee__item">Papel de arroz washi</span>
+      <span class="marquee__item">Teñido a mano en baño de té</span>
+      <span class="marquee__item">Estructura de hierro</span>
+      <span class="marquee__item">Portalámpara E27</span>
+      <span class="marquee__item">Hecho en Buenos Aires</span>
+      <span class="marquee__item">Envíos a todo el país</span>
+    </div>
+  </div>
+
+  <!-- ======================= NOVEDADES (products) ======================= -->
+  <section class="section" id="novedades">
+    <div class="container">
+      <div class="section-head">
+        <h2>Novedades</h2>
+        <div class="section-actions">
+          <a class="btn btn--tertiary btn--sm" href="#familias">Ver todo</a>
+          <button class="chev" data-scroll="prev" data-target="track-novedades" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="chev" data-scroll="next" data-target="track-novedades" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <div class="carousel">
+        <div class="track track--products" id="track-novedades">
+
+          <a class="card" href="#">
+            <div class="card__media"><span class="card__tag">Nuevo</span><img src="images/products/ensui-d70.webp" alt="Lámpara colgante Ensui D70"></div>
+            <div class="card__body">
+              <div class="card__name">Ensui D70</div>
+              <div class="card__meta">Colgante gota · Ø70 cm</div>
+              <div class="card__price"><span class="now">$188.910</span><span class="was">$209.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+
+          <a class="card" href="#">
+            <div class="card__media"><span class="card__tag">Nuevo</span><img src="images/products/kyu-d80.webp" alt="Lámpara colgante esférica Kyu D80"></div>
+            <div class="card__body">
+              <div class="card__name">Kyu D80</div>
+              <div class="card__meta">Colgante esférica · Ø80 cm</div>
+              <div class="card__price"><span class="now">$296.910</span><span class="was">$329.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+
+          <a class="card" href="#">
+            <div class="card__media"><img src="images/products/ensui-d90.webp" alt="Lámpara colgante Ensui D90"></div>
+            <div class="card__body">
+              <div class="card__name">Ensui D90</div>
+              <div class="card__meta">Colgante gota · Ø90 cm</div>
+              <div class="card__price"><span class="now">$350.910</span><span class="was">$389.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+
+          <a class="card" href="#">
+            <div class="card__media"><img src="images/products/kyu-d50.webp" alt="Lámpara colgante esférica Kyu D50"></div>
+            <div class="card__body">
+              <div class="card__name">Kyu D50</div>
+              <div class="card__meta">Colgante esférica · Ø50 cm</div>
+              <div class="card__price"><span class="now">$152.910</span><span class="was">$169.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+
+          <a class="card" href="#">
+            <div class="card__media"><img src="images/products/ensui-d50.webp" alt="Lámpara colgante Ensui D50"></div>
+            <div class="card__body">
+              <div class="card__name">Ensui D50</div>
+              <div class="card__meta">Colgante gota · Ø50 cm</div>
+              <div class="card__price"><span class="now">$148.410</span><span class="was">$164.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+
+          <a class="card" href="#">
+            <div class="card__media"><img src="images/products/kyu-d60.webp" alt="Lámpara colgante esférica Kyu D60"></div>
+            <div class="card__body">
+              <div class="card__name">Kyu D60</div>
+              <div class="card__meta">Colgante esférica · Ø60 cm</div>
+              <div class="card__price"><span class="now">$170.910</span><span class="was">$189.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+
+          <a class="card" href="#">
+            <div class="card__media"><img src="images/products/donatsu.webp" alt="Lámpara colgante toroidal Donatsu"></div>
+            <div class="card__body">
+              <div class="card__name">Donatsu</div>
+              <div class="card__meta">Colgante toroidal · papel de arroz</div>
+              <div class="card__price"><span class="now">$269.910</span><span class="was">$299.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+
+          <a class="card" href="#">
+            <div class="card__media"><img src="images/products/kyu-d100.webp" alt="Lámpara colgante esférica Kyu D100"></div>
+            <div class="card__body">
+              <div class="card__name">Kyu D100</div>
+              <div class="card__meta">Colgante esférica · Ø100 cm</div>
+              <div class="card__price"><span class="now">$531.810</span><span class="was">$590.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= STATEMENT + VALUES ======================= -->
+  <section class="section statement" id="proceso">
+    <div class="container">
+      <h2>Lámparas de papel, hechas a mano en Argentina</h2>
+      <div class="values">
+        <div class="value">
+          <div class="value__media"><img src="images/products/hinoru.webp" alt="Lámpara escultórica Hinoru de papel plegado"></div>
+          <div class="value__label">Formas de inspiración japonesa</div>
+          <div class="value__desc">Siluetas sobrias y escultóricas para espacios contemporáneos.</div>
+        </div>
+        <div class="value">
+          <div class="value__media"><img src="images/products/nume.webp" alt="Detalle del papel de arroz de una lámpara Nume"></div>
+          <div class="value__label">Papel de arroz auténtico</div>
+          <div class="value__desc">Washi real sobre estructura de hierro. Cada pieza difunde una luz suave y cálida.</div>
+        </div>
+        <div class="value">
+          <div class="value__media"><img src="images/products/kumo.webp" alt="Lámpara Kumo teñida a mano"></div>
+          <div class="value__label">Teñido a mano en baño de té</div>
+          <div class="value__desc">El color se logra con té: matices naturales que hacen única a cada lámpara.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= FAMILIAS (categories) ======================= -->
+  <section class="section" id="familias">
+    <div class="container">
+      <div class="section-head">
+        <h2>Explorá por forma</h2>
+        <div class="section-actions">
+          <a class="btn btn--tertiary btn--sm" href="#novedades">Ver todo</a>
+          <button class="chev" data-scroll="prev" data-target="track-familias" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="chev" data-scroll="next" data-target="track-familias" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <div class="carousel">
+        <div class="track track--cats" id="track-familias">
+          <a class="cat" href="#novedades">
+            <img src="images/products/ensui-d70.webp" alt="Familia Ensui">
+            <span class="cat__eyebrow">Colgante gota</span>
+            <span class="cat__name">Ensui</span>
+            <span class="cat__go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></span>
+          </a>
+          <a class="cat" href="#novedades">
+            <img src="images/products/kyu-d80.webp" alt="Familia Kyu">
+            <span class="cat__eyebrow">Colgante esférica</span>
+            <span class="cat__name">Kyu</span>
+            <span class="cat__go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></span>
+          </a>
+          <a class="cat" href="#novedades">
+            <img src="images/products/taniro.jpg" alt="Familia Taniro, lámparas de pie">
+            <span class="cat__eyebrow">De pie</span>
+            <span class="cat__name">Taniro</span>
+            <span class="cat__go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></span>
+          </a>
+          <a class="cat" href="#novedades">
+            <img src="images/products/hinoru.webp" alt="Familia Hinoru, escultóricas">
+            <span class="cat__eyebrow">Escultórica</span>
+            <span class="cat__name">Hinoru</span>
+            <span class="cat__go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></span>
+          </a>
+          <a class="cat" href="#novedades">
+            <img src="images/products/kumo.webp" alt="Familia Kumo">
+            <span class="cat__eyebrow">Colgante nube</span>
+            <span class="cat__name">Kumo</span>
+            <span class="cat__go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></span>
+          </a>
+          <a class="cat" href="#novedades">
+            <img src="images/products/donatsu.webp" alt="Familia Donatsu">
+            <span class="cat__eyebrow">Colgante toroidal</span>
+            <span class="cat__name">Donatsu</span>
+            <span class="cat__go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= FULL-WIDTH VIDEO ======================= -->
+  <section class="videohero" id="video" aria-label="Video del proceso de Hikari Studio">
+    <video class="videohero__media" autoplay muted loop playsinline preload="metadata" poster="images/hero/hero-1.png">
+      <source src="media/hikari-720.mp4" type="video/mp4">
+      <source src="media/hikari-360.mp4" type="video/mp4">
+    </video>
+    <div class="videohero__inner">
+      <p class="eyebrow eyebrow--alt">El proceso</p>
+      <h2>Del papel a la luz</h2>
+      <p>Mirá cómo plegamos y teñimos cada lámpara a mano, pieza por pieza, en nuestro taller de Buenos Aires.</p>
+      <div class="hero__cta">
+        <a class="btn btn--contrast" href="#novedades">Descubrir Lishuran</a>
+        <a class="btn btn--outline" href="#tutoriales">Ver tutoriales</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= UGC ======================= -->
+  <section class="section" id="tutoriales">
+    <div class="container">
+      <div class="section-head">
+        <h2>#HikariEnCasa</h2>
+        <div class="section-actions">
+          <a class="btn btn--tertiary btn--sm" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">@hikaristudio_ar</a>
+          <button class="chev" data-scroll="prev" data-target="track-ugc" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="chev" data-scroll="next" data-target="track-ugc" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <div class="carousel">
+        <div class="track track--ugc" id="track-ugc">
+          <a class="ugc" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+            <div class="ugc__media"><img src="images/products/ensui-d90.webp" alt="Ensui D90 en un living"></div>
+            <div class="ugc__name">Ensui D90</div><div class="ugc__handle">@casa.nordica</div>
+          </a>
+          <a class="ugc" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+            <div class="ugc__media"><img src="images/products/kyu-d50.webp" alt="Kyu D50 sobre una mesa"></div>
+            <div class="ugc__name">Kyu D50</div><div class="ugc__handle">@estudio.mate</div>
+          </a>
+          <a class="ugc" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+            <div class="ugc__media"><img src="images/products/donatsu.webp" alt="Donatsu en un comedor"></div>
+            <div class="ugc__name">Donatsu</div><div class="ugc__handle">@dpto.palermo</div>
+          </a>
+          <a class="ugc" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+            <div class="ugc__media"><img src="images/products/nume.webp" alt="Nume en un dormitorio"></div>
+            <div class="ugc__name">Nume</div><div class="ugc__handle">@luz.calida</div>
+          </a>
+          <a class="ugc" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+            <div class="ugc__media"><img src="images/products/kumo.webp" alt="Kumo colgando en un rincón"></div>
+            <div class="ugc__name">Kumo</div><div class="ugc__handle">@interior.bsas</div>
+          </a>
+          <a class="ugc" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+            <div class="ugc__media"><img src="images/products/kyu-d100.webp" alt="Kyu D100 en un espacio amplio"></div>
+            <div class="ugc__name">Kyu D100</div><div class="ugc__handle">@loft.chacarita</div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= MISSION BANNER (hidden for now) ======================= -->
+  <section class="mission" id="historia" hidden>
+    <div class="mission__inner">
+      <p class="eyebrow eyebrow--alt">Nuestro estudio</p>
+      <h2>Luz cálida, hecha a mano.</h2>
+      <p>Hikari (光) significa “luz”. Plegamos papel de arroz sobre estructuras de hierro y lo teñimos con té, pieza por pieza, en nuestro taller de Buenos Aires. Pequeñas trazas y matices no son defectos: son la huella de lo hecho a mano.</p>
+      <a class="btn btn--contrast" href="#familias">Conocé el proceso</a>
+    </div>
+    <div class="mission__photo">
+      <img src="images/products/taniro.jpg" alt="Lámpara de pie Taniro de papel de arroz en el taller de Hikari">
+    </div>
+  </section>
+
+  <!-- ======================= FINISH RAIL (hidden for now) ======================= -->
+  <section class="section" id="acabado" hidden>
+    <div class="container">
+      <div class="finish">
+        <div>
+          <p class="eyebrow">Personalizá</p>
+          <h2>Tu luz, a tu manera</h2>
+          <p>El baño de té da tonos naturales únicos. Sumá cable extra de 4,8 m con dímmer y enchufe para colgar donde quieras.</p>
+          <div class="swatches">
+            <span class="swatch"><span class="swatch__dot" style="background:#F4EFE7"></span><span class="swatch__name">Natural</span></span>
+            <span class="swatch"><span class="swatch__dot" style="background:#EAD9BE"></span><span class="swatch__name">Té claro</span></span>
+            <span class="swatch"><span class="swatch__dot" style="background:#D9BE97"></span><span class="swatch__name">Té medio</span></span>
+            <span class="swatch"><span class="swatch__dot" style="background:#B98E5F"></span><span class="swatch__name">Té oscuro</span></span>
+            <span class="swatch"><span class="swatch__dot" style="background:#1C1C1C"></span><span class="swatch__name">Cable negro</span></span>
+          </div>
+        </div>
+        <a class="btn btn--secondary" href="#familias">Elegir acabado</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__lead">
+        <h2>Hecho a mano en Buenos Aires</h2>
+        <div class="newsletter">
+          <p class="newsletter__label">Newsletter</p>
+          <form class="newsletter__form" onsubmit="return false">
+            <input type="email" placeholder="Ingresá tu email…" aria-label="Email">
+            <button type="submit">Enviar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__cols">
+      <div class="footer__col">
+        <h3>Tienda</h3>
+        <ul>
+          <li><a href="#novedades">Novedades</a></li>
+          <li><a href="#familias">Todas las lámparas</a></li>
+          <li><a href="#acabado">Cable + dímmer</a></li>
+          <li><a href="#">Tarjeta de regalo</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h3>Familias</h3>
+        <ul>
+          <li><a href="#familias">Ensui</a></li>
+          <li><a href="#familias">Kyu</a></li>
+          <li><a href="#familias">Hinoru</a></li>
+          <li><a href="#familias">Taniro</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h3>Aprender</h3>
+        <ul>
+          <li><a href="#tutoriales">Tutoriales</a></li>
+          <li><a href="#proceso">Cómo se hace</a></li>
+          <li><a href="#acabado">Cuidados</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h3>Estudio</h3>
+        <ul>
+          <li><a href="#historia">Nuestra historia</a></li>
+          <li><a href="#">Contacto</a></li>
+          <li><a href="#">Acceso mayoristas</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h3>Ayuda</h3>
+        <ul>
+          <li><a href="https://wa.me/5491151816319" target="_blank" rel="noopener">WhatsApp 11 5181-6319</a></li>
+          <li><a href="mailto:hikarilamparas@gmail.com">hikarilamparas@gmail.com</a></li>
+          <li><a href="#">Política de devolución</a></li>
+          <li><a href="#">Botón de arrepentimiento</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p class="footer__legal">© 2026 Hikari Studio · El Salvador 5856, CABA · Todos los derechos reservados. Defensa de las y los consumidores — para reclamos ingresá al formulario oficial.</p>
+      <div class="footer__social">
+        <a href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="https://wa.me/5491151816319" target="_blank" rel="noopener" aria-label="WhatsApp">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.4 5 5.1-1.3A10 10 0 1 0 12 2zm0 2a8 8 0 0 1 0 16 8 8 0 0 1-4.1-1.1l-.4-.2-3 .8.8-2.9-.2-.4A8 8 0 0 1 12 4zm4.7 10.3c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2.1-.2 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3c-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6 1.8 2.8 4.4 3.9c1.6.7 2.2.7 3 .6.5 0 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- floating WhatsApp (as on the real store) -->
+<a class="wa-fab" href="https://wa.me/5491151816319" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp"
+   style="position:fixed;right:20px;bottom:20px;z-index:120;width:56px;height:56px;border-radius:50%;background:#25D366;display:grid;place-items:center;box-shadow:0 6px 20px rgba(0,0,0,.18)">
+  <svg viewBox="0 0 24 24" fill="#fff" width="28" height="28"><path d="M12 2a10 10 0 0 0-8.6 15l-1.4 5 5.1-1.3A10 10 0 1 0 12 2zm4.7 12.3c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2.1-.2 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3c-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6 1.8 2.8 4.4 3.9c1.6.7 2.2.7 3 .6.5 0 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1z"/></svg>
+</a>
+
+<script>
+(function () {
+  // Sticky header: transparent-over-hero -> solid on scroll
+  var header = document.getElementById('header');
+  var hero = document.getElementById('hero');
+  function onScroll() {
+    var trigger = hero ? hero.offsetHeight * 0.5 : 200;
+    if (window.scrollY > trigger) {
+      header.classList.add('header--solid');
+      header.classList.remove('header--over');
+    } else {
+      header.classList.remove('header--solid');
+      header.classList.add('header--over');
+    }
+  }
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Carousel chevrons
+  document.querySelectorAll('[data-scroll]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var track = document.getElementById(btn.dataset.target);
+      if (!track) return;
+      var amount = Math.round(track.clientWidth * 0.8);
+      track.scrollBy({ left: btn.dataset.scroll === 'next' ? amount : -amount, behavior: 'smooth' });
+    });
+  });
+
+  // Disable chevrons at ends
+  document.querySelectorAll('.track').forEach(function (track) {
+    function update() {
+      var prev = document.querySelector('[data-scroll="prev"][data-target="' + track.id + '"]');
+      var next = document.querySelector('[data-scroll="next"][data-target="' + track.id + '"]');
+      if (prev) prev.disabled = track.scrollLeft <= 4;
+      if (next) next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+    }
+    track.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  });
+})();
+</script>
+
+</body>
+</html>
