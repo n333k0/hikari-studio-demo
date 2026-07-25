@@ -234,6 +234,99 @@
       if (progressWrap) progressWrap.classList.add('is-done');
     });
 
+    /* ---------- Cord-length slider (pendants only) ----------
+       Lets you drag the shade up and down its cord to see how it would fall in
+       a room with a standard 2.40m ceiling — the real question when ordering a
+       pendant. It moves the shade rather than the ceiling, because that is what
+       a longer cord does.
+
+       Two honest limitations, both deliberate:
+       - PREVIEW ONLY. Quick Look and Scene Viewer load a static .usdz/.glb and
+         there is no way to hand them a slider value, so the AR session always
+         shows the authored length. The hint text under the slider says so.
+       - It reaches the three.js scene through model-viewer's internal
+         `Symbol(scene)`. The public `model` API exposes materials and variants
+         but no scene nodes, so there is no supported alternative. Everything
+         below therefore fails soft: any missing symbol, node or geometry just
+         leaves the control [hidden] and the page behaves exactly as before.
+         The CDN version is pinned in the page <head> for the same reason. */
+    function setupCordSlider() {
+      var control = document.getElementById('arCordControl');
+      var range = document.getElementById('arCordRange');
+      var valueOut = document.getElementById('arCordValue');
+      var dropOut = document.getElementById('arCordDrop');
+      var cordName = viewer.dataset.cordNode;
+      if (!control || !range || !cordName) return;
+
+      var sceneSym = Object.getOwnPropertySymbols(viewer).filter(function (s) {
+        return String(s) === 'Symbol(scene)';
+      })[0];
+      var scene = sceneSym && viewer[sceneSym];
+      if (!scene || typeof scene.getObjectByName !== 'function') return;
+
+      var cord = scene.getObjectByName(cordName);
+      if (!cord || !cord.geometry) return;
+      cord.geometry.computeBoundingBox();
+      var cordBox = cord.geometry.boundingBox;
+      var cordGeomHeight = cordBox.max.y - cordBox.min.y;
+      if (!(cordGeomHeight > 0)) return;
+
+      /* Everything that isn't the cord, the canopy or the floor anchor rides
+         with the shade. Identifying the shade by exclusion means a new pendant
+         only has to name its cord, not paste in a generated mesh id. */
+      var fixed = [cordName, viewer.dataset.canopyNode, 'ar_floor_anchor'];
+      var movers = [];
+      scene.traverse(function (o) {
+        if (o.isMesh && o.geometry && fixed.indexOf(o.name) === -1) movers.push(o);
+      });
+      if (!movers.length) return;
+
+      var ceiling = cord.position.y + cordBox.max.y * cord.scale.y;
+      var baseLen = cordGeomHeight * cord.scale.y;
+      var cordBottom = ceiling - baseLen;
+
+      var offsets = movers.map(function (m) { return m.position.y - cordBottom; });
+      var lowest = Infinity;
+      movers.forEach(function (m) {
+        m.geometry.computeBoundingBox();
+        var y = m.position.y + m.geometry.boundingBox.min.y * m.scale.y;
+        if (y < lowest) lowest = y;
+      });
+      var dropOffset = lowest - cordBottom;   // shade underside, relative to cord end
+
+      function fmtMetres(m) { return m.toFixed(2).replace('.', ','); }
+
+      function apply(lenM) {
+        cord.scale.y = lenM / cordGeomHeight;
+        cord.position.y = ceiling - cordBox.max.y * cord.scale.y;
+        movers.forEach(function (m, i) { m.position.y = (ceiling - lenM) + offsets[i]; });
+        if (typeof scene.queueRender === 'function') scene.queueRender();
+
+        var shadeBottom = ceiling - lenM + dropOffset;
+        /* Re-centre on the lamp as it drops, or a long cord walks the shade out
+           of the bottom of the frame. Written to the ATTRIBUTE, not just the
+           property, so reopening the modal (which re-applies the authored
+           framing) doesn't snap the camera back off the lamp. */
+        viewer.setAttribute('camera-target',
+          '0m ' + ((ceiling + shadeBottom) / 2).toFixed(3) + 'm 0m');
+
+        if (valueOut) valueOut.textContent = Math.round(lenM * 100) + ' cm';
+        if (dropOut) dropOut.textContent = fmtMetres(shadeBottom) + ' m';
+      }
+
+      var minCm = Math.round(parseFloat(viewer.dataset.cordMin || '0.25') * 100);
+      var maxCm = Math.round(parseFloat(viewer.dataset.cordMax || '1.00') * 100);
+      range.min = minCm;
+      range.max = maxCm;
+      range.value = Math.round(baseLen * 100);
+      range.addEventListener('input', function () { apply(parseInt(range.value, 10) / 100); });
+      apply(baseLen);
+      control.hidden = false;
+    }
+
+    if (viewer.loaded) setupCordSlider();
+    viewer.addEventListener('load', setupCordSlider, { once: true });
+
     /* arriving from a QR scan (?ar=1): jump straight into the AR modal */
     if (new URLSearchParams(location.search).get('ar') === '1') {
       openModal('modal-ar');

@@ -20,6 +20,51 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — Fixed scale is the feature in furniture AR, not a limitation
+- Context: asked whether we should let users resize the lamp in AR, "like IKEA".
+  IKEA Place specifically does *not* allow it, for the opposite reason to the
+  one the question assumes: the whole value of furniture AR is answering "does
+  this fit in my room", and a resizable object cannot answer that.
+- Lesson: before copying a competitor's affordance, check they actually have it
+  — and if they don't, work out what they do instead. Here `ar-scale="fixed"`
+  (which sends `#allowsContentScaling=0` to Quick Look) is already correct and
+  should stay. What the big catalogues *do* offer is switching to a different
+  **product variant** at its own true scale, which is a different feature.
+- Apply: keep `ar-scale="fixed"` on every product. If someone wants "a smaller
+  one", that is a link to the D50, not a scale control.
+- Refs: `scripts/3d/README.md`; `productos/*/index.html` → `<model-viewer>`.
+
+### 2026-07-25 — Build on an undocumented API only with a pin and a soft failure
+- Context: the cord-length slider had to move a mesh inside the loaded model.
+  model-viewer's public `model` API exposes materials and variants but no scene
+  nodes, so the only route is its internal `Symbol(scene)` — and the page loaded
+  the library from a floating `@^4` CDN range that could change under us.
+- Lesson: reaching into internals is sometimes the only option, but only with
+  two guardrails: **pin the exact version** so it cannot move on its own, and
+  **write the feature to disappear rather than break** if the internals move
+  anyway. Then verify that failure path deliberately instead of assuming it — I
+  stubbed `Object.getOwnPropertySymbols` to hide the symbol and confirmed the
+  slider stayed hidden, the model still loaded, and no console errors appeared.
+- Apply: `@google/model-viewer@4.3.1` is pinned in all three PDPs (that also
+  protects the hand-tuned FOV framing). Any code touching `Symbol(scene)` must
+  bail out silently on a missing symbol/node/geometry. Re-run the stub test when
+  bumping the pin.
+- Refs: `product.js` → `setupCordSlider`; `scripts/3d/README.md` → cord slider.
+
+### 2026-07-25 — A control that moves geometry invalidates the framing around it
+- Context: the cord slider worked — the geometry moved correctly at every stop —
+  but at the long end the shade slid straight out of the bottom of the frame,
+  because `camera-target` was a fixed authored value tuned for the default cord.
+- Lesson: test the *extremes* of a new range, not just that it responds. A
+  mid-range screenshot looked perfect and would have shipped the bug.
+- Apply: `apply()` recentres `camera-target` on the lamp each time, and writes it
+  to the **attribute** so reopening the modal (which re-applies the authored
+  framing) doesn't snap the camera off the subject. Verified by asserting the
+  model's world bbox stays inside the camera frustum at 25/50/84/100 cm. Also
+  re-check the modal's height budget: the slider pushed the "Ver en AR" button
+  below the fold until the CTA was moved directly under the viewer.
+- Refs: `product.js` → `setupCordSlider`; `scripts/screenshot/shoot-ar.mjs`.
+
 ### 2026-07-25 — One function, three consumers: the status line can't disagree with the board
 - Context: the session-opening status and the WebsiteOS panel each computed
   "what's happening" separately — the hook had its own inline Python, the panel

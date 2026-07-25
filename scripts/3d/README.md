@@ -165,3 +165,41 @@ The `<model-viewer>` camera is set declaratively per page. Three things bite:
   otherwise wins. Pinning the aspect is what lets one radius look right on both
   a phone and a desktop, since model-viewer derives visible *width* from the
   canvas aspect.
+
+---
+
+## The cord-length slider (pendants only)
+
+A pendant page can opt into a slider that drags the shade up and down its cord.
+Switch it on with data attributes on the `<model-viewer>`:
+
+```html
+data-cord-node="cord_extension"   <!-- presence of this = show the slider -->
+data-canopy-node="cord_canopy"
+data-ceiling="2.40" data-cord-min="0.25" data-cord-max="1.00"
+```
+
+plus the `#arCordControl` block in the modal (copy it from
+`productos/ensui-d70/index.html`). Everything else is in `product.js`.
+
+The canopy stays pinned to the ceiling and the shade moves, because that is what
+a longer cord does. The **floor anchor never moves**, so the AR floor reference
+is untouched no matter where the slider sits. The camera target follows the
+shade down — without that, a long cord walks the lamp out of the bottom of the
+frame.
+
+**Two things to know before extending it:**
+
+1. **It is preview-only.** Quick Look and Scene Viewer load a static file; there
+   is no way to hand them a slider value. Shipping a model per length was
+   considered and rejected — at ~5.5 MB per `.usdz` it does not scale past a
+   couple of products. The note under the slider tells the user which length AR
+   will show; keep that honest if you change the default.
+2. **It reaches `model-viewer`'s internal `Symbol(scene)`.** The public `model`
+   API exposes materials and variants only — there is no supported way to move a
+   node. So the CDN version is **pinned** (not `^4`) in each page's `<head>`,
+   and the code fails soft: a missing symbol, node or geometry leaves the
+   control `[hidden]` and the page behaves exactly as before. Verified by
+   stubbing `Object.getOwnPropertySymbols` to hide the symbol — slider hidden,
+   model still loads, zero console errors. If you bump the pin, re-run that
+   check.
