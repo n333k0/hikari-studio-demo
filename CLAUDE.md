@@ -8,6 +8,12 @@
 > [`docs/brief-guide.md`](docs/brief-guide.md) for the shape of that ask, not
 > a form to fill). When the user gives new scope or direction, update
 > `docs/site-structure.md` in the same turn so the next session already knows.
+> Also fold a short **ready-to-review** list into that same opening reply —
+> one live link per distinct section that has finished work (home, one
+> example product page + "+N more" if there are several, category/blog/
+> contacto once those phases start), not an exhaustive per-page list. The
+> `SessionStart` hook below prints the raw discovered links; the reply just
+> has to render them, collapsed.
 >
 > **New here, or just want the plain-language "how do I keep building this"
 > guide?** Read [`docs/quick-start.md`](docs/quick-start.md) first.
@@ -19,6 +25,15 @@
 > broad layout): [`docs/change-workflow.md`](docs/change-workflow.md) FIRST, then
 > `docs/website-spec.md`, `docs/protected-regions.md`, `docs/known-regressions.md`,
 > `docs/verification-policy.md`. Log new lessons in `docs/project-lessons.md`.
+>
+> **Multiple independent units of work pending?** (e.g. several remaining
+> Phase-1 products) — proactively propose dispatching them as parallel
+> background agents rather than waiting to be asked; see
+> [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §13 for when that's safe,
+> the scout-vs-ship task shapes, and the "flag, don't edit" rule for shared
+> files. Before starting new work, also check the **"Pending shared-file
+> edits"** list in [`docs/site-structure.md`](docs/site-structure.md) for
+> anything already flagged but not yet applied.
 >
 > **Check [`docs/KANBAN.md`](docs/KANBAN.md) for current priorities** before starting new
 > work, and [`docs/site-structure.md`](docs/site-structure.md) for project scope and each

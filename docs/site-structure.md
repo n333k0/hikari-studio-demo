@@ -24,7 +24,26 @@ verbatim, and keep the existing copy rules in `CLAUDE.md` (e.g. never claim
 | Area | Status | Notes |
 |---|---|---|
 | Home page | In progress, largely built | Header, hero, marquee, "Novedades" product carousel, statement + value tiles, "Explorá por forma" category carousel, full-width process video, #HikariEnCasa UGC section, footer with wordmark — all built. `#historia` (mission) and `#acabado` (finish rail) sections exist in the HTML but are intentionally `hidden`. |
-| Inner pages (product detail, category, tutoriales, contacto, policies, etc.) | **Phase 1: 1 of ~30 products live** (`productos/ensui-d70/`) | Full phased scope defined 2026-07-24 — see below. Template pattern proven end-to-end, including real device AR. Remaining work is mostly repeating the pattern per product. |
+| Inner pages (product detail, category, tutoriales, contacto, policies, etc.) | **Phase 1: 3 of ~30 products live** (`productos/ensui-d70/`, `productos/ensui-d50/`, `productos/ikigai-s/`) | Full phased scope defined 2026-07-24 — see below. Template pattern proven structurally, but **not validated** — see Validated? below. Ensui D50 and Ikigai S were built in the same parallel batch as D70 and carry the same known AR texture bug (not yet fixed for those two — see Validated?). Ikigai S also has no home-page card yet (no real price/copy sourced for one). Remaining work is mostly repeating the pattern per product, gated on validation clearing first. |
+
+## Pending shared-file edits (flagged, not yet applied)
+
+Shared-file changes that a parallel agent run identified as needed, but did
+**not** make itself — per the "flag, don't edit" convention in
+`docs/ARCHITECTURE.md` §13. Applying these piecemeal, one parallel agent at a
+time, risks two agents colliding on the same file or applying the same kind of
+change in inconsistent styles, so they wait here until a human (or one later
+dedicated step) applies all of them together in a single reviewed change —
+then the row is deleted. A `SessionStart` hook (`.claude/settings.json`)
+surfaces this section automatically at the start of every session; see
+`docs/ARCHITECTURE.md` §13 for why.
+
+<!-- PENDING-SHARED-EDITS:START -->
+| File | Needed change | Why | Flagged | Status |
+|---|---|---|---|---|
+
+(An empty table between the markers means nothing is currently pending.)
+<!-- PENDING-SHARED-EDITS:END -->
 
 ## Full site scope
 **Defined 2026-07-24.** Goal: recreate the *entire* real site
@@ -75,9 +94,18 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
             https://n333k0.github.io/hikari-studio-demo/productos/ensui-d70/
             — future validators should still name which version they
             checked if this drifts again (local file vs. pushed/live URL).
-      Until all four are checked, treat this template as proven for **one**
-      product page, not thirty — see `docs/KANBAN.md` for how this blocks
-      the rest of Phase 1.
+      - [ ] `productos/ensui-d50/` and `productos/ikigai-s/` USDZ files
+            re-exported with PNG textures (same fix as `77b514c`/`4ccdcc5`) —
+            confirmed 2026-07-25 that both still ship `.webp` textures inside
+            their `.usdz` (checked via `unzip -l models/<slug>.usdz`), so
+            both will show the same solid-violet Quick Look placeholder as
+            D70 did before its fix. Not yet fixed.
+      Until all five are checked, treat this template as proven for **zero**
+      product pages end-to-end (D70's AR was fixed once, but the underlying
+      *pipeline step* that produced the webp bug hasn't been corrected at
+      its source, since two more products built the same way have the same
+      defect) — not thirty. See `docs/KANBAN.md` for how this blocks the
+      rest of Phase 1.
 
       **Pattern decision (2026-07-24, revised from the original plan):** one
       static HTML file per product at `productos/<slug>/index.html` (matches
@@ -172,7 +200,14 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
 
 ## How to use this file
 - Every session: read it, then open with a short status line before doing
-  anything else — don't wait to be asked.
+  anything else — don't wait to be asked. That status line must be a **full
+  overview of the whole site scope** (Home + every phase in "Planned pages /
+  phases" — Phase 1 product pages, Phase 2 category pages, Phase 3
+  blog/tutoriales, Phase 4 contacto/políticas), not just whatever phase is
+  currently in progress. State plainly, per area: done / in progress /
+  blocked / not started. The user wants a "vista gorda" (big-picture view) of
+  what's missing across the entire site every time a session starts, not a
+  spotlight on the current focus area.
 - **Before proposing to scale or duplicate any page template across many
   instances** (e.g. "let's build the other 29 product pages now"), check
   that template's **Validated?** status in this file first. If it says "Not

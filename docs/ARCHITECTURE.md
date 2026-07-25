@@ -373,3 +373,163 @@ and the exit-code convention (0 = pass, non-zero = fail/not-done).
 
 If a future change would violate one of these, that is the signal to stop and
 reconsider the design — not to weaken the principle.
+
+---
+
+## 13. Parallel agent dispatch — composing independent units of work
+
+> This section extends the OS beyond a single change. §1–§12 describe how *one*
+> editor safely makes *one* change. This section describes when it is safe to run
+> *several* editors — as background agents in isolated git worktrees — at the same
+> time, and what to do when their work turns out not to be as independent as it
+> looked.
+
+### Philosophy
+
+Sections 1–12 assume one editor, one change, one shared checkout — that is where
+`run.sh`'s baseline/verify/repair loop and `/quick-site`'s fast path both live, and
+it is the right model whenever a change touches the site's *shared* surface
+(`index.html`'s structure, `styles.css`, `main.js`, `product.js`, `product.css`,
+the header/nav). But some requests aren't one change; they are N independent
+changes that happen to be batched together — "build the next three product pages,"
+for instance. Running those serially wastes wall-clock time for zero safety
+benefit, because the discipline in §1–§12 exists to protect *shared* invariants,
+and provably independent new files (a product's own folder, its own 3D model)
+can't collide on anything to protect.
+
+So a second, complementary pattern exists: **parallel background agent dispatch**
+via isolated git worktrees, for the subset of a request that is provably
+independent. It is a *dispatch layer above* `run.sh` and `/quick-site`, not a
+replacement for either — every agent dispatched into a worktree still follows
+`/quick-site` or the full `run.sh` workflow internally for its own slice of work.
+Parallelism changes *how many editors run right now*; it never relaxes what any
+one editor is required to do once it is running.
+
+### Mechanism
+
+**When a unit of work is parallel-safe.** A task is safe to dispatch alongside
+others in the same batch when its entire footprint is files that exist *only* for
+that task — the canonical shape is one new `productos/<slug>/` folder plus that
+product's own `models/<slug>.glb` / `.usdz`. No task in a batch may need to touch a
+file that another concurrent task, or the live site's shared surface, also needs —
+if scope isn't actually disjoint, it isn't parallel-safe, however small each
+individual edit looks.
+
+**When it needs a human check-in first, not blind dispatch:**
+- The task's *primary* deliverable is a shared file — `index.html`, `styles.css`,
+  `main.js`, `product.js`, `product.css` — not a corner discovered mid-task
+  (that's the "flag, don't edit" case below, which is different).
+- The task touches the header/nav protected region (`docs/protected-regions.md`).
+  Protected regions are protected precisely *because* they're shared, fragile,
+  hand-tuned invariants; `/quick-site` already treats a solo change there as
+  high-risk, so dispatching several agents at it in parallel multiplies collision
+  risk instead of dividing it.
+- The request has no defined acceptance criteria yet. Parallel dispatch presumes
+  each agent can verify its own work against a clear bar; an ill-defined request
+  can't be verified, so it isn't a parallel-dispatch candidate — it's a scoping
+  problem, and the answer is a **scout** task (below), not N agents guessing in
+  parallel.
+
+**The "flag, don't edit" convention.** When a dispatched agent discovers, mid-task,
+that it needs to change a file shared with the rest of the batch or with the live
+site (most often `index.html`), it must **not** make that edit. It states exactly
+what needs to change and why in its final report, and stops there. These flagged
+needs are **batched into one deliberate follow-up edit** — applied together, by a
+human or a single later dedicated step — rather than let two or more parallel
+agents each quietly touch the same shared file, where they could collide outright
+or apply the same kind of change in two different styles.
+`docs/site-structure.md` carries a living "Pending shared-file edits" list for
+exactly this — see the worked example below for its first real entries. This
+convention is specific to *shared* files that *more than one* task in the batch
+might need; a shared file that only one task in the batch touches (nothing else
+concurrent needs it) has no collision to avoid and can simply be edited directly —
+see the overflow-fix agent in the worked example.
+
+**The "scout" task shape.** For work whose scope is undefined or that targets a
+protected region, dispatch a **read-only, no-edits** investigation agent instead of
+a "ship" agent. Its job is to look, compare against whatever reference the request
+implies, and come back with a written proposal — not to make the change blind.
+This turns an ambiguous or high-risk request into either (a) a scoped,
+now-parallel-safe follow-up task, or (b) a decision point for a human, before any
+edit happens. Scout and ship are the two task shapes this pattern dispatches; a
+scout never becomes a ship mid-run — its output is a proposal, reviewed, *then* a
+new ship task is dispatched (or the full `run.sh` workflow is used) if the
+proposal is approved.
+
+**Open-ended investigation also belongs in the background, even alone.** This
+isn't only about running several agents at once. A single open-ended investigation
+or diagnosis — "why does X happen," "audit Y against Z" — is itself multi-step and
+unpredictable in length. Doing it in the foreground of the orchestrating session
+blocks that session for however long the investigation takes, which defeats the
+reason this pattern exists in the first place: keeping the orchestrating
+conversation unblocked. A scout task is dispatched to a background agent even when
+there is exactly one of it.
+
+**Relation to `run.sh` and `/quick-site`.** This layer answers "how many
+independent editors should run right now"; `run.sh` and `/quick-site` each still
+answer "how does a single editor safely make one change," and neither question
+replaces the other. A single high-risk or ambiguous-scope change is still routed
+through `run.sh`'s full graph (or `/quick-site`'s own escalation path) exactly as
+§1–§12 describe — it is never fanned out into a parallel batch just because a
+batch happened to be running. Use this pattern only when a request genuinely
+decomposes into multiple units of work with disjoint file scope.
+
+### Worked example (2026-07-25)
+
+This is the run that this section codifies, not a hypothetical:
+
+1. **Two ship agents in parallel** each built one new, independent
+   product-detail page — `productos/ensui-d50/` and `productos/ikigai-s/`. Safe
+   to run together because each agent's entire footprint was its own new folder
+   plus its own `models/<slug>.glb`/`.usdz` — never a file the other agent, or
+   the live site, also needed.
+2. **One scout agent**, explicitly told read-only/no-edits, audited the mobile
+   hamburger menu against the Gantri reference. This touches the protected
+   header/nav region and had no defined acceptance criteria yet, so it was not
+   dispatched as a ship task — it came back with a written proposal instead of a
+   blind edit.
+3. **Two more agents**, dispatched in parallel because their file scopes didn't
+   overlap: one fixed the real bug the scout had found (mobile horizontal
+   overflow) directly in `styles.css` — a shared file, but only this one agent in
+   the batch needed it, so no flag was necessary, it just made the fix; the other
+   hardened the overflow-check tooling itself, confined to `scripts/`.
+4. **Both product-page agents independently hit the same shared-file need**:
+   each had to point the home page's product card `href="#"` at its new real
+   page — an `index.html` edit needed by both. Per instructions, **neither agent
+   made that edit.** Each flagged it precisely in its final report instead, so a
+   human (or one later dedicated step) applies both link updates together in a
+   single, deliberate, reviewed change — rather than two parallel agents quietly
+   racing to touch the same file. Those two items are the first real entries in
+   `docs/site-structure.md`'s "Pending shared-file edits" list, seeded 2026-07-25
+   and still unapplied as of this writing (neither product page is merged into
+   `main` yet).
+
+### Why not a new skill for this
+
+`/quick-site` is explicitly single-agent/no-delegation (its own SKILL.md says so),
+and `run.sh` is a single-run verify/repair graph — neither is the right home for
+"decide how many independent editors to dispatch right now," and neither needed to
+change. But that decision is a judgment call about *when* to fan out work, not a
+fixed, scriptable procedure the way `/quick-site`'s baseline→verify→repair loop is
+(which has real deterministic checks behind each step) — there is no new
+deterministic tool to package. `CLAUDE.md` already carries an unconditional,
+every-session instruction to propose a parallel batch when one is warranted, which
+is a stronger trigger than a skill description a model has to judge as relevant;
+this section is the reference that instruction points to. A dedicated skill file
+would mostly duplicate this section and the CLAUDE.md instruction, with the same
+staleness risk §12 already warns about for any doc, so one was not added.
+
+### Why a SessionStart hook, not just the doc-read convention
+
+The one part of this pattern a doc-read convention alone handles poorly is
+**cross-session memory of flagged, not-yet-applied shared-file edits** — that's
+specifically a session-boundary problem, not a knowledge problem, and hooks exist
+for exactly that class of problem. A minimal, read-only `SessionStart` hook
+(`.claude/settings.json`) runs `git worktree list` (parallel work may already be
+in flight) and prints the "Pending shared-file edits" section of
+`docs/site-structure.md` verbatim into context at the start of every session —
+deterministically, the same way §2's verification scripts surface ground truth
+instead of trusting an agent to remember or to scroll to the right subsection. It
+does not gate anything and changes no site file; if it can't find its markers it
+says so loudly rather than silently showing nothing, in keeping with design
+principle 5 (§12).
