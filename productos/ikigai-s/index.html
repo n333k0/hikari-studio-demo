@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ikigai S · Lámpara de pie de papel de arroz — Hikari Studio</title>
+<meta name="description" content="Ikigai S: lámpara de pie vertical en papel de arroz teñido en baño de té, con anillo de bambú y trípode de hierro. Ø33cm x 74cm alto. Envíos a todo el país.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="../../product.css">
+<script type="module" src="https://unpkg.com/@google/model-viewer@^4/dist/model-viewer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- ============================ HEADER ============================ -->
+<header class="header header--solid" id="header">
+  <div class="header__inner">
+    <button class="menu-toggle" aria-label="Menú"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <a class="brand" href="../../index.html" aria-label="Hikari Studio — inicio">
+      <img class="brand__logo" src="../../images/logo.png" alt="Hikari Studio">
+    </a>
+    <nav class="nav" aria-label="Principal">
+      <a href="../../index.html#novedades">Novedades<span class="badge">Nuevo</span></a>
+      <a href="../../index.html#familias">Lámparas</a>
+      <a href="../../index.html#proceso">Cómo se hace</a>
+      <a href="../../index.html#historia">Estudio</a>
+      <a href="../../index.html#tutoriales">Tutoriales</a>
+    </nav>
+    <div class="header__utils">
+      <a href="../../index.html#familias" aria-label="Buscar"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></a>
+      <a href="#" aria-label="Mi cuenta"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+      <a href="#" aria-label="Carrito"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></a>
+    </div>
+  </div>
+</header>
+
+<main class="pdp-main">
+
+  <!-- ============================ PINNED GALLERY + BUYBOX ============================
+       The whole row sticks under the header while this tall wrapper scrolls
+       through; each scroll "step" swaps the active photo, then releases into
+       the next section once all photos have played (Gantri pattern). Disabled
+       on tablet/mobile (see product.css) — normal stacked flow there. The
+       gallery photo runs flush to the left viewport edge (no gutter); only
+       the buybox column keeps the normal right-side gutter. -->
+  <div class="pdp-gallery-scroll" id="galleryScroll">
+      <div class="pdp-top">
+
+        <div class="pdp-gallery">
+          <div class="pdp-gallery__main">
+            <img id="galleryMainImg" src="../../images/products/ikigai-s/1.webp" alt="Ikigai S, lámpara de pie de papel de arroz">
+            <div class="pdp-gallery__progress" id="galleryProgress">1 / 5</div>
+          </div>
+          <div class="pdp-gallery__dots" id="galleryDots">
+            <button class="pdp-gallery__dot is-active" data-index="0" aria-label="Foto 1"><img src="../../images/products/ikigai-s/1.webp" alt=""></button>
+            <button class="pdp-gallery__dot" data-index="1" aria-label="Foto 2"><img src="../../images/products/ikigai-s/2.webp" alt=""></button>
+            <button class="pdp-gallery__dot" data-index="2" aria-label="Foto 3"><img src="../../images/products/ikigai-s/3.webp" alt=""></button>
+            <button class="pdp-gallery__dot" data-index="3" aria-label="Foto 4"><img src="../../images/products/ikigai-s/4.webp" alt=""></button>
+            <button class="pdp-gallery__dot" data-index="4" aria-label="Foto 5"><img src="../../images/products/ikigai-s/5.webp" alt=""></button>
+          </div>
+        </div>
+
+        <div class="pdp-buybox">
+          <p class="pdp-breadcrumb">
+            <a href="../../index.html">Inicio</a><span class="sep">|</span>
+            <a href="../../index.html#familias">De Pie</a><span class="sep">|</span>
+            <span class="current">Ikigai S</span>
+          </p>
+          <p class="eyebrow">De pie trípode</p>
+          <h1>Ikigai S</h1>
+          <p class="pdp-dims">Ø33 cm × 74 cm alto</p>
+
+          <div class="pdp-price">
+            <span class="now">$236.700</span>
+            <span class="was">$263.000</span>
+            <span class="save">−10% · $213.030 con transferencia o depósito</span>
+          </div>
+          <p class="pdp-installments">3x $78.900 sin interés</p>
+          <p class="pdp-sku">SKU: HK5-ES-BG</p>
+
+          <form class="pdp-buyrow" onsubmit="return false">
+            <div class="pdp-qty">
+              <button type="button" data-step="down" aria-label="Restar">−</button>
+              <input type="text" inputmode="numeric" value="1" aria-label="Cantidad">
+              <button type="button" data-step="up" aria-label="Sumar">+</button>
+            </div>
+            <button type="submit" class="btn btn--primary" data-add-to-cart>Agregar al carrito</button>
+          </form>
+
+          <div class="pdp-secondary-actions">
+            <button type="button" data-share data-modal-open="modal-share">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M8.1 10.7l7.8-4.4M8.1 13.3l7.8 4.4"/></svg>
+              Compartir
+            </button>
+            <button type="button" data-modal-open="modal-envio">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18.5" r="1.6"/><circle cx="17.5" cy="18.5" r="1.6"/></svg>
+              Medios de envío
+            </button>
+          </div>
+
+          <div class="pdp-ar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M4 7.5L12 12l8-4.5M12 12v9"/></svg>
+            <div>
+              <div class="pdp-ar__label">Ver en tu espacio</div>
+              <div class="pdp-ar__sub">Probá esta lámpara en 3D, a escala real</div>
+            </div>
+            <button type="button" class="btn btn--tertiary btn--sm" data-modal-open="modal-ar">Ver en AR</button>
+          </div>
+
+          <p class="pdp-process-note"><strong>Proceso artesanal:</strong> este producto se elabora a mano con papel de arroz y pegamento, por lo que pueden aparecer leves trazas en los bordes — algo normal y no considerado un defecto. El color se logra con un baño de té, que aporta matices naturales y hace que cada lámpara tenga un toque único.</p>
+        </div>
+      </div>
+  </div>
+
+  <!-- ============================ SCROLL-REVEAL STATEMENT ============================ -->
+  <section class="pdp-reveal" id="descReveal">
+    <div class="pdp-reveal__sticky">
+      <h2 class="pdp-reveal__title" data-reveal>Una silueta que se eleva</h2>
+      <p class="pdp-reveal__text" data-reveal>Diseño vertical sobre un trípode de hierro, coronado por un anillo de bambú que sostiene el papel de arroz desde arriba. Ikigai S encuentra su lugar en rincones especiales, entradas o cualquier espacio que pida una pieza escultórica y a la vez funcional.</p>
+    </div>
+  </section>
+
+  <!-- ============================ MORE PHOTOS ============================ -->
+  <section class="pdp-section container">
+    <div class="pdp-more-photos">
+      <img class="tall" src="../../images/products/ikigai-s/2.webp" alt="Ikigai S encendida, detalle del papel de arroz y el anillo de bambú">
+      <img src="../../images/products/ikigai-s/5.webp" alt="Ikigai S en un rincón junto a plantas y una alfombra">
+    </div>
+  </section>
+
+  <!-- ============================ SPECS ============================ -->
+  <section class="pdp-section container">
+    <h2>Specs</h2>
+    <div class="pdp-specs-list">
+      <details open>
+        <summary>Medidas y materiales</summary>
+        <div class="pdp-specs-body">Diámetro: 33 cm — Alto: 74 cm — Peso: 1,2 kg.<br>Material: papel de arroz + estructura de hierro + anillo de bambú.<br>Portalámpara: E27. Cable: negro. Con dimmer.</div>
+      </details>
+      <details>
+        <summary>Cuidado del papel de arroz</summary>
+        <div class="pdp-specs-body">Limpiar en seco, con un plumero o un paño suave, sin frotar. Mantener alejada de la humedad directa y de la exposición prolongada al sol, que puede alterar el tono logrado con el baño de té. Pequeñas trazas de pegamento en los bordes son parte del proceso artesanal, no un defecto.</div>
+      </details>
+      <details>
+        <summary>Envío y entrega</summary>
+        <div class="pdp-specs-body">Envío a domicilio a todo el país o retiro en nuestro local de El Salvador 5856, CABA. Ver el detalle en "Medios de envío" más arriba.</div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============================ COMMUNITY ============================ -->
+  <section class="pdp-section" id="comunidad">
+    <div class="container">
+      <div class="section-head">
+        <h2>Ikigai S en tu casa</h2>
+        <div class="section-actions">
+          <a class="btn btn--tertiary btn--sm" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">@hikaristudio_ar</a>
+          <button class="chev" data-scroll="prev" data-target="track-pdp-ugc" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="chev" data-scroll="next" data-target="track-pdp-ugc" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+      <div class="carousel">
+        <div class="track track--ugc" id="track-pdp-ugc">
+          <a class="ugc" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+            <div class="ugc__media"><img src="../../images/products/ikigai-s/3.webp" alt="Ikigai S iluminando un living junto a plantas"></div>
+            <div class="ugc__name">Ikigai S</div><div class="ugc__handle">@casa.entrerios</div>
+          </a>
+          <a class="ugc" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+            <div class="ugc__media"><img src="../../images/products/ikigai-s/5.webp" alt="Ikigai S en un rincón con alfombra y plantas"></div>
+            <div class="ugc__name">Ikigai S</div><div class="ugc__handle">@rincon.luminoso</div>
+          </a>
+          <a class="ugc" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+            <div class="ugc__media"><img src="../../images/products/kumo.webp" alt="Kumo en un living"></div>
+            <div class="ugc__name">Kumo</div><div class="ugc__handle">@depto.chico</div>
+          </a>
+          <a class="ugc" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+            <div class="ugc__media"><img src="../../images/products/hinoru.webp" alt="Hinoru junto a un sillón"></div>
+            <div class="ugc__name">Hinoru</div><div class="ugc__handle">@luz.de.tarde</div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ RELATED ============================ -->
+  <section class="pdp-section pdp-related">
+    <div class="container">
+      <div class="section-head">
+        <h2>También te puede interesar</h2>
+        <div class="section-actions">
+          <button class="chev" data-scroll="prev" data-target="track-pdp-related" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="chev" data-scroll="next" data-target="track-pdp-related" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+      <div class="carousel">
+        <div class="track track--products" id="track-pdp-related">
+          <a class="card" href="#">
+            <div class="card__media"><img src="../../images/products/taniro.jpg" alt="Lámpara de pie Taniro"></div>
+            <div class="card__body">
+              <div class="card__name">Taniro</div>
+              <div class="card__meta">De pie · papel de arroz</div>
+              <div class="card__price"><span class="now">$257.310</span><span class="was">$285.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+          <a class="card" href="#">
+            <div class="card__media"><img src="../../images/products/hinoru.webp" alt="Lámpara de pie Hinoru"></div>
+            <div class="card__body">
+              <div class="card__name">Hinoru</div>
+              <div class="card__meta">De pie · papel de arroz</div>
+              <div class="card__price"><span class="now">$476.910</span><span class="was">$529.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+          <a class="card" href="#">
+            <div class="card__media"><img src="../../images/products/nume.webp" alt="Lámpara de pie Nume"></div>
+            <div class="card__body">
+              <div class="card__name">Nume</div>
+              <div class="card__meta">De pie · papel de arroz</div>
+              <div class="card__price"><span class="now">$224.910</span><span class="was">$249.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+          <a class="card" href="#">
+            <div class="card__media"><img src="../../images/products/kumo.webp" alt="Lámpara de pie Kumo"></div>
+            <div class="card__body">
+              <div class="card__name">Kumo</div>
+              <div class="card__meta">De pie · papel de arroz</div>
+              <div class="card__price"><span class="now">$157.410</span><span class="was">$174.900</span><span class="save">−10% transf.</span></div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ STICKY BOTTOM PURCHASE BAR ============================
+       Last child of <main> on purpose: position:sticky rides the bottom of the
+       viewport while scrolling through the page, then stops the instant it
+       hits the end of <main> — i.e. right above the footer, never over it. -->
+  <div class="pdp-sticky" id="pdpSticky">
+    <div class="pdp-sticky__inner">
+      <span class="pdp-sticky__name">Ikigai S</span>
+      <span class="pdp-sticky__price">$236.700<span class="was">$263.000</span></span>
+      <button type="button" class="pdp-sticky__icon-btn pdp-sticky__icon-btn--ar" data-modal-open="modal-ar" aria-label="Ver en AR">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M4 7.5L12 12l8-4.5M12 12v9"/></svg>
+      </button>
+      <button type="button" class="pdp-sticky__icon-btn" data-share data-modal-open="modal-share" aria-label="Compartir">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M8.1 10.7l7.8-4.4M8.1 13.3l7.8 4.4"/></svg>
+      </button>
+      <button type="button" class="pdp-sticky__icon-btn" data-modal-open="modal-envio" aria-label="Medios de envío">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18.5" r="1.6"/><circle cx="17.5" cy="18.5" r="1.6"/></svg>
+      </button>
+      <button type="button" class="btn btn--primary btn--sm pdp-sticky__atc" data-add-to-cart aria-label="Agregar al carrito">
+        <svg class="pdp-sticky__atc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+        <span class="pdp-sticky__atc-label">Agregar al carrito</span>
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__lead">
+        <div class="newsletter">
+          <p class="newsletter__label">Newsletter</p>
+          <p class="newsletter__sub">Suscribite para recibir novedades, lanzamientos y más.</p>
+          <form class="newsletter__form" onsubmit="return false">
+            <input type="email" placeholder="Ingresá tu email…" aria-label="Email">
+            <button type="submit">Enviar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__cols">
+      <div class="footer__col">
+        <h3>Tienda</h3>
+        <ul>
+          <li><a href="../../index.html#novedades">Novedades</a></li>
+          <li><a href="../../index.html#familias">Todas las lámparas</a></li>
+          <li><a href="../../index.html#acabado">Cable + dímmer</a></li>
+          <li><a href="#">Tarjeta de regalo</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h3>Familias</h3>
+        <ul>
+          <li><a href="../../index.html#familias">Ensui</a></li>
+          <li><a href="../../index.html#familias">Kyu</a></li>
+          <li><a href="../../index.html#familias">Hinoru</a></li>
+          <li><a href="../../index.html#familias">Taniro</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h3>Aprender</h3>
+        <ul>
+          <li><a href="../../index.html#tutoriales">Tutoriales</a></li>
+          <li><a href="../../index.html#proceso">Cómo se hace</a></li>
+          <li><a href="../../index.html#acabado">Cuidados</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h3>Estudio</h3>
+        <ul>
+          <li><a href="../../index.html#historia">Nuestra historia</a></li>
+          <li><a href="#">Contacto</a></li>
+          <li><a href="#">Acceso mayoristas</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h3>Ayuda</h3>
+        <ul>
+          <li><a href="https://wa.me/5491151816319" target="_blank" rel="noopener">WhatsApp 11 5181-6319</a></li>
+          <li><a href="mailto:hikarilamparas@gmail.com">hikarilamparas@gmail.com</a></li>
+          <li><a href="#">Política de devolución</a></li>
+          <li><a href="#">Botón de arrepentimiento</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p class="footer__legal">© 2026 Hikari Studio · El Salvador 5856, CABA · Todos los derechos reservados. Defensa de las y los consumidores — para reclamos ingresá al formulario oficial.</p>
+      <div class="footer__social">
+        <a href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a href="https://wa.me/5491151816319" target="_blank" rel="noopener" aria-label="WhatsApp">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.4 5 5.1-1.3A10 10 0 1 0 12 2zm0 2a8 8 0 0 1 0 16 8 8 0 0 1-4.1-1.1l-.4-.2-3 .8.8-2.9-.2-.4A8 8 0 0 1 12 4zm4.7 10.3c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2.1-.2 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3c-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6 1.8 2.8 4.4 3.9c1.6.7 2.2.7 3 .6.5 0 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="footer__wordmark" aria-hidden="true">
+    <svg class="footer__wordmark-svg" viewBox="7.5 -97.3 947.1 98.6" preserveAspectRatio="xMidYMid meet"><text x="0" y="0">HIKARI STUDIO</text></svg>
+  </div>
+</footer>
+
+<!-- floating WhatsApp (as on the real store) -->
+<a class="wa-fab" id="waFab" href="https://wa.me/5491151816319" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="#fff" width="28" height="28"><path d="M12 2a10 10 0 0 0-8.6 15l-1.4 5 5.1-1.3A10 10 0 1 0 12 2zm4.7 12.3c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2.1-.2 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3c-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6 1.8 2.8 4.4 3.9c1.6.7 2.2.7 3 .6.5 0 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1z"/></svg>
+</a>
+
+<!-- ============================ MODALS ============================ -->
+
+<!-- gallery lightbox -->
+<div class="modal modal--lightbox" id="modal-gallery" hidden>
+  <div class="modal__backdrop" data-modal-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Foto ampliada de Ikigai S">
+    <button class="modal__close" data-modal-close aria-label="Cerrar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <img src="../../images/products/ikigai-s/1.webp" alt="">
+  </div>
+</div>
+
+<!-- compartir -->
+<div class="modal" id="modal-share" hidden>
+  <div class="modal__backdrop" data-modal-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+    <button class="modal__close" data-modal-close aria-label="Cerrar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h3 class="modal__title" id="shareTitle">Compartir Ikigai S</h3>
+    <div class="modal__share-grid">
+      <a class="modal__share-btn" href="https://wa.me/?text=Mir%C3%A1%20esta%20l%C3%A1mpara%20Ikigai%20S%20de%20Hikari%20Studio" target="_blank" rel="noopener">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.4 5 5.1-1.3A10 10 0 1 0 12 2zm0 2a8 8 0 0 1 0 16 8 8 0 0 1-4.1-1.1l-.4-.2-3 .8.8-2.9-.2-.4A8 8 0 0 1 12 4zm4.7 10.3c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2.1-.2 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3c-.2.3-.9.9-.9 2.1s.9 2.4 1 2.6 1.8 2.8 4.4 3.9c1.6.7 2.2.7 3 .6.5 0 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1z"/></svg></span>
+        WhatsApp
+      </a>
+      <a class="modal__share-btn" href="mailto:?subject=Ikigai%20S%20%E2%80%94%20Hikari%20Studio&body=Mir%C3%A1%20esta%20l%C3%A1mpara" target="_blank" rel="noopener">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+        Email
+      </a>
+      <a class="modal__share-btn" href="https://instagram.com/hikaristudio_ar" target="_blank" rel="noopener">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></span>
+        Instagram
+      </a>
+    </div>
+    <div class="modal__copylink">
+      <span>hikaristudio.com.ar/productos/ikigai-s</span>
+      <button type="button">Copiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- medios de envío -->
+<div class="modal" id="modal-envio" hidden>
+  <div class="modal__backdrop" data-modal-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="envioTitle">
+    <button class="modal__close" data-modal-close aria-label="Cerrar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h3 class="modal__title" id="envioTitle">Medios de envío</h3>
+    <div class="modal__row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18.5" r="1.6"/><circle cx="17.5" cy="18.5" r="1.6"/></svg>
+      <div>
+        <div class="modal__row-title">Envío a domicilio</div>
+        <div class="modal__row-sub">A todo el país. El costo y el plazo se calculan en el checkout según tu código postal.</div>
+      </div>
+    </div>
+    <div class="modal__row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10l8-6 8 6v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M9 20v-6h6v6"/></svg>
+      <div>
+        <div class="modal__row-title">Retiro en local</div>
+        <div class="modal__row-sub">El Salvador 5856, CABA — sin costo, coordinamos por WhatsApp.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ver en tu espacio (AR) — real device AR via model-viewer. On a phone that
+     supports it: a genuine "Ver en AR" button (Quick Look on iOS / Scene
+     Viewer on Android). On desktop (no AR hardware): a real QR code, generated
+     client-side, that opens this exact page with ?ar=1 on your phone, which
+     auto-opens this same modal there. -->
+<div class="modal modal--center" id="modal-ar" hidden>
+  <div class="modal__backdrop" data-modal-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="arTitle">
+    <button class="modal__close" data-modal-close aria-label="Cerrar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h3 class="modal__title" id="arTitle">Ikigai S en tu espacio</h3>
+    <model-viewer
+      id="arViewer"
+      class="pdp-ar-viewer"
+      src="../../models/ikigai-s.glb"
+      ios-src="../../models/ikigai-s.usdz"
+      alt="Modelo 3D de Ikigai S, a escala real (Ø33cm x 74cm)"
+      poster="../../images/products/ikigai-s/1.webp"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      ar-placement="floor"
+      ar-scale="fixed"
+      camera-controls
+      auto-rotate
+      rotation-per-second="18deg"
+      interaction-prompt="when-focused"
+      environment-image="neutral"
+      exposure="1.1"
+      shadow-intensity="1.1"
+      shadow-softness="0.9"
+      camera-target="0m 0.35m 0m"
+      camera-orbit="18deg 78deg 1.1m"
+      min-camera-orbit="auto 40deg 0.6m"
+      max-camera-orbit="auto 100deg 3.5m">
+      <div slot="progress-bar" class="mv-progress" id="mvProgress">
+        <div class="mv-progress__track"><div class="mv-progress__bar" id="mvProgressBar"></div></div>
+      </div>
+    </model-viewer>
+
+    <button type="button" class="btn btn--primary pdp-ar-cta" id="arActivateBtn" hidden>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M4 7.5L12 12l8-4.5M12 12v9"/></svg>
+      Ver en AR
+    </button>
+    <p class="pdp-ar-note" id="arSupportedNote" hidden>Está a escala real (Ø33 × 74 cm) — tocá el botón para ubicarla en tu espacio con la cámara.</p>
+
+    <div class="pdp-ar-qr" id="arQrBlock" hidden>
+      <div class="pdp-ar-qr__code" id="arQrCode"></div>
+      <div class="pdp-ar-qr__copy">
+        <strong>Escaneá con tu celular</strong>
+        La vista en AR funciona desde el celular (iPhone o Android). Escaneá este código para abrirla ahí — llega directo a esta misma ventana.
+      </div>
+    </div>
+    <p class="pdp-ar-note" id="arDesktopNote" hidden>Mientras tanto, podés girar el modelo 3D de arriba con el mouse para ver la forma y el tamaño reales.</p>
+  </div>
+</div>
+
+<script src="../../main.js"></script>
+<script src="../../product.js"></script>
+</body>
+</html>
