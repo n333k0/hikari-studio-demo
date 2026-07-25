@@ -20,6 +20,31 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — Pick a dispatched agent's model by capability floor, not by name
+- Context: user asked how model selection works when spawning soldados. It
+  didn't — nothing in `CLAUDE.md`, `ARCHITECTURE.md` §13 or `KANBAN.md` said
+  anything about it, so the choice was whatever the orchestrating session felt
+  like that turn. The obvious fix (a table mapping task → model name) was
+  rejected as the *wrong* fix: model names rotate every few months, so that
+  table is stale on arrival, while the risk classes §13 already defines don't
+  move.
+- Lesson: an undeclared model choice silently sets the ceiling on every safety
+  argument built on top of it. Write the durable half as a **capability floor
+  per task class** and quarantine the volatile half (which model clears which
+  floor today) to a couple of clearly-marked lines. Corollary: never degrade to
+  fit what's available — "no model meets the floor" is a stop condition, same
+  category as a protected-region change, not a reason to send the best one on
+  hand and hope.
+- Apply: omit the Agent tool's `model` param by default (inherit the
+  orchestrator's). Passing it at all is an affirmative decision needing a
+  one-line reason in the dispatch prompt. Only downgrade for work that follows
+  an already-**validated** template with a provably isolated, reversible
+  footprint. When the model roster changes, edit only the two marked lines in
+  §13 — needing to edit the floor table means the floors were written in terms
+  of model names after all.
+- Refs: ARCHITECTURE.md §13 → "Choosing a soldado's model — capability floor,
+  not model name"; §12 principle 2 (deterministic/reasoning boundary).
+
 ### 2026-07-25 — Independently-opened sessions need a way to see each other's active scope
 - Context: user opened a second Claude Code session (dashboard work) while
   this session was active. Separately, this session found 7 old worktrees

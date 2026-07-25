@@ -450,6 +450,11 @@ individual edit looks.
   can't be verified, so it isn't a parallel-dispatch candidate — it's a scoping
   problem, and the answer is a **scout** task (below), not N agents guessing in
   parallel.
+- No available model meets the task's capability floor (see "Choosing a
+  soldado's model" below). Dispatching a weaker model at a task that needs a
+  stronger one is a silent downgrade of the whole safety argument, so the
+  answer is to stop and check in — never to send the best model on hand and
+  hope.
 
 **The "flag, don't edit" convention.** When a dispatched agent discovers, mid-task,
 that it needs to change a file shared with the rest of the batch or with the live
@@ -602,3 +607,52 @@ because it's low-risk and immediately useful, and because a hard block needs
 the claim-cleanup discipline above to actually be reliable first — an enforced
 block against a stale, un-cleaned-up claim would wrongly refuse legitimate
 work.
+
+### Choosing a soldado's model — capability floor, not model name
+
+Every dispatched agent runs on *some* model. Left implicit, that choice drifts
+with whoever is orchestrating that day, which makes it exactly the kind of
+undeclared variable §12 principle 2 warns about — a judgment call quietly
+deciding something the rest of the safety argument depends on.
+
+**Express the rule as a capability floor per task class, never as a fixed
+model name.** Model names rotate every few months; the risk classes this
+section already defines (ship vs. scout, isolated vs. shared footprint,
+protected region or not) do not. A doc that hardcodes "new product page →
+model X" is stale the day X is superseded, with the same staleness risk §12
+warns about for any doc. So the durable half of the rule is the floor:
+
+| Class | The work | Floor |
+|---|---|---|
+| **Mechanical** | Following an already-**validated** template, footprint provably isolated, fully reversible | A downgrade is permitted, with a stated reason |
+| **Judgment** | Anything that *decides* rather than executes — scout tasks, audits, design, diagnosing a failure, writing docs or conventions | The orchestrator's own model |
+| **Irreversible** | Protected region, shared file as the primary deliverable, no acceptance criteria yet | Not dispatched at all — human check-in (see the list above) |
+
+**Default to inheriting; make downgrade the justified exception.** Omitting the
+Agent tool's `model` parameter inherits the orchestrator's model, and that is
+the correct default for almost every dispatch. Passing `model` at all is an
+affirmative decision that needs a one-line reason in the dispatch prompt
+itself, so the agent's own transcript records why it was run at that level.
+This makes the system fail toward *expensive* rather than toward *wrong* —
+the right direction when the failure mode of "too weak" is a plausible-looking
+edit that nobody caught.
+
+**Never degrade to fit what's available.** If nothing on hand meets the floor,
+that is a stop condition, not a reason to send the strongest available model
+and hope — it is the last bullet in "needs a human check-in first" above,
+deliberately filed there rather than given its own mechanism.
+
+**The volatile half, expected to change — keep it to these two lines.** As of
+2026-07-25 the `model` parameter accepts `sonnet`, `opus`, `haiku`, and
+`fable`. Only one downgrade is currently considered safe: `haiku` for
+Mechanical-class work. `fable` has no assigned class here because nobody on
+this project has evaluated it for these task shapes — an unassigned model is
+not an implicitly-permitted one. When the roster changes, edit *these two
+lines only*; if a change seems to require editing the table above, that is a
+signal the floors were written in terms of model names after all.
+
+**This is a soft signal too.** There is no pre-dispatch check that a given
+model is actually available or actually clears a floor — the parameter takes a
+fixed enum and a bad choice surfaces as a poor result, not as a refusal. Like
+the claim files above, this rests on each session applying it honestly rather
+than on tooling enforcing it.
