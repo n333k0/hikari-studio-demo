@@ -12,10 +12,19 @@ RUN_DIR="$(resolve_run)" || exit 2
 
 if ! have_browser; then fail "overflow: chrome-devtools-axi missing"; emit_result "$RUN_DIR" overflow 0 '{"error":"no browser"}'; exit 1; fi
 
-browser_open 1440 900
+if ! browser_open 1440 900; then
+  fail "overflow: could not establish a trustworthy initial viewport — aborting rather than measuring blind"
+  emit_result "$RUN_DIR" overflow 0 '{"error":"viewport unverified at open"}'
+  exit 1
+fi
 results="{}"; ok=1
 for w in "${BREAKPOINTS[@]}"; do
-  browser_resize "$w" 900
+  if ! browser_resize "$w" 900; then
+    fail "  ${w}px  SKIPPED — viewport could not be verified at this width (see warning above)"
+    results="$(RES="$results" W="$w" python3 -c 'import os,json;r=json.loads(os.environ["RES"]);r[os.environ["W"]]={"top":"VIEWPORT_MISMATCH","bottom":"VIEWPORT_MISMATCH"};print(json.dumps(r))')"
+    ok=0
+    continue
+  fi
   val_top="$(browser_eval '() => { window.scrollTo(0,0); return JSON.stringify(document.documentElement.scrollWidth - document.documentElement.clientWidth); }')"
   val_top="${val_top//\"/}"; [[ "$val_top" =~ ^-?[0-9]+$ ]] || val_top="ERR"
   val_bottom="$(browser_eval '() => { window.scrollTo(0, document.body.scrollHeight); return JSON.stringify(document.documentElement.scrollWidth - document.documentElement.clientWidth); }')"

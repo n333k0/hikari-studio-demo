@@ -43,19 +43,6 @@ resolve_run() {
 # Whether the browser CLI is available at all.
 have_browser() { command -v chrome-devtools-axi >/dev/null 2>&1; }
 
-# Open the local site and set a viewport. Quiet. Small settle delay.
-browser_open() {
-  local w="${1:-1440}" h="${2:-900}"
-  chrome-devtools-axi open "$SITE_URL" >/dev/null 2>&1 || true
-  chrome-devtools-axi resize "$w" "$h" >/dev/null 2>&1 || true
-  sleep 0.6
-}
-browser_resize() {
-  local w="$1" h="${2:-900}"
-  chrome-devtools-axi resize "$w" "$h" >/dev/null 2>&1 || true
-  sleep 0.3
-}
-
 # Evaluate JS in the page and return a CLEAN, double-decoded JSON string.
 # CONTRACT: the JS you pass MUST `return JSON.stringify(value)`.
 # Handles chrome-devtools-axi's escaped `result: "..."` output.
@@ -79,6 +66,74 @@ for _ in range(3):           # peel escaping layers until it stops being a JSON 
         break
 print(json.dumps(val))
 '
+}
+
+# Read back the ACTUAL layout-viewport width from the live page. Never trust
+# a resize/emulate call's own "ok" output — read the DOM back and compare.
+_actual_viewport_w() {
+  local out
+  out="$(browser_eval '() => JSON.stringify(document.documentElement.clientWidth)')" || { printf 'ERR'; return; }
+  out="${out//\"/}"
+  [[ "$out" =~ ^[0-9]+$ ]] && printf '%s' "$out" || printf 'ERR'
+}
+
+# Set the layout viewport to <w>x<h> and ASSERT it actually took effect
+# before returning — retrying, then reopening the page, before giving up.
+#
+# CONFIRMED BUG (2026-07-25, reproduced repeatedly): `chrome-devtools-axi
+# resize <w> <h>` drives a REAL OS-level browser-window resize
+# (Browser.setWindowBounds), which has a silent floor on this machine — any
+# requested width below ~500px clamps to exactly 500px, while the CLI still
+# prints "resized: width: <w>" as if the requested width had been applied.
+# That silently hits this project's own 390px breakpoint: the "mobile" check
+# could have been measuring ~500px, not 390px, with no error anywhere.
+# Separately, a stale/disconnected page target was observed to not respond to
+# ANY resize at all (every width read back as the same stuck value) while
+# `eval` kept returning cached-looking results instead of erroring — so a
+# resize call succeeding is not evidence the page is even listening.
+# `chrome-devtools-axi emulate --viewport "<w>x<h>"` (CDP device-metrics
+# override — the same mechanism DevTools' own responsive-design mode uses)
+# does NOT have the real-window floor: verified reliable down to 390px and
+# back up to 1440px repeatedly, including rapid up/down toggling, in the same
+# session. So viewport changes go through `emulate`, never `resize`, and
+# every change is read back and asserted before any measurement at that
+# width is trusted. Callers must check the return value: 0 = verified at the
+# requested width, 1 = could not get there even after reopening — the caller
+# must NOT proceed to measure/trust anything at that breakpoint.
+_set_viewport() {
+  local w="$1" h="$2" attempt got
+  for attempt in 1 2; do
+    chrome-devtools-axi emulate --viewport "${w}x${h}" >/dev/null 2>&1 || true
+    sleep 0.35
+    got="$(_actual_viewport_w)"
+    [[ "$got" == "$w" ]] && return 0
+  done
+  warn "viewport stuck at ${got}px (wanted ${w}px) after 2 attempts — reopening $SITE_URL and retrying once more"
+  chrome-devtools-axi open "$SITE_URL" >/dev/null 2>&1 || true
+  sleep 0.6
+  chrome-devtools-axi emulate --viewport "${w}x${h}" >/dev/null 2>&1 || true
+  sleep 0.35
+  got="$(_actual_viewport_w)"
+  [[ "$got" == "$w" ]] && return 0
+  fail "viewport STUCK at ${got}px, cannot reach ${w}px even after reopening — browser session is unreliable, refusing to report a measurement taken at the wrong width"
+  return 1
+}
+
+# Open the local site and set a viewport. Quiet. Small settle delay.
+# Returns 1 (without exiting) if the viewport can't be verified — caller
+# must treat that as fatal for this run, per the contract above.
+browser_open() {
+  local w="${1:-1440}" h="${2:-900}"
+  chrome-devtools-axi open "$SITE_URL" >/dev/null 2>&1 || true
+  sleep 0.3
+  _set_viewport "$w" "$h"
+}
+# Returns 1 (without exiting) if the requested width can't be verified —
+# caller must skip/flag that breakpoint rather than measuring at whatever
+# width the page actually happens to be.
+browser_resize() {
+  local w="$1" h="${2:-900}"
+  _set_viewport "$w" "$h"
 }
 
 # Screenshot via the dedicated Playwright module (screenshot/shoot.mjs).
