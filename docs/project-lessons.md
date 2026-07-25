@@ -20,6 +20,30 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — One function, three consumers: the status line can't disagree with the board
+- Context: the session-opening status and the WebsiteOS panel each computed
+  "what's happening" separately — the hook had its own inline Python, the panel
+  had its own JS. Same intent, two implementations, and the status line only
+  had numbers at all when someone had remembered to start the panel.
+- Lesson: two things that must always agree should not be two pieces of code.
+  And when availability is what forces the duplicate ("the server might be
+  off"), the fix is to make the one implementation runnable *without* the
+  server, not to write a second one for the offline case.
+- Apply: `summary_lines()` in `.claude/dashboard/server.py` is the only place
+  the board's numbers are phrased. Three consumers share it: `/api/summary`
+  (what the hook curls when the panel is up), `server.py --summary` (identical
+  output, no daemon, what the hook falls back to), and the panel's own
+  headline. `CLAUDE.md` tells sessions to render that line verbatim and never
+  recompute or invent it. Verified both branches print byte-identical text.
+- Also added, for the one incoherence tooling *can't* fix by construction:
+  `kanban.commits_since_update` counts commits on main since `docs/KANBAN.md`
+  was last edited. Past `KANBAN_STALE_AFTER_COMMITS` (4) the board and the
+  status line both warn that finished work may still be sitting in "Por hacer".
+  It can't detect a *wrong* card — only that the hand-maintained tracker is
+  lagging, which is the honest, mechanical version of that warning.
+- Refs: `.claude/dashboard/server.py` → `summary_lines()`, `read_kanban()`;
+  `scripts/session-start-summary.sh`; `CLAUDE.md` opening block.
+
 ### 2026-07-25 — "0 agentes" was read as "nadie trabajando"; count sessions, don't infer them
 - Context: the board said *"Ningún agente está trabajando ahora mismo"* and
   *"0 sesiones con señal"* while two Claude Code windows were actively editing

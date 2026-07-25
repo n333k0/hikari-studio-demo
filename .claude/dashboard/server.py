@@ -61,6 +61,12 @@ CAPTAIN_HEARTBEAT_STALE_AFTER_SECS = 20 * 60  # 20 minutes
 ACTIVITY_SCAN_MAX_FILES = 20000
 ACTIVITY_SCAN_TIME_BUDGET_SECS = 1.5
 
+# How many commits main can move past the last edit to docs/KANBAN.md before the
+# board starts warning that the hand-maintained tracker is probably behind. A
+# few commits is normal (you ship, then tidy the tracker); a pile of them means
+# finished work is still sitting in "Por hacer".
+KANBAN_STALE_AFTER_COMMITS = 4
+
 AGENT_BRANCH_RE = re.compile(r"^worktree-agent-([0-9a-f]+)$")
 PID_RE = re.compile(r"pid (\d+)")
 CLAIM_FIELD_RE = re.compile(r"\*\*([^*:]+):\*\*\s*(.+)")
@@ -536,10 +542,23 @@ def read_kanban(repo_root):
             raw = f.read()
     except OSError as exc:
         return {"exists": False, "path": path, "error": str(exc)}
+    # How far behind main the tracker itself is. KANBAN.md is hand-maintained,
+    # so the board's biggest lie risk isn't a bug — it's a session that shipped
+    # work and never moved the card. This can't detect *wrong* content, but it
+    # can say "main moved 9 commits and nobody touched the tracker", which is
+    # the honest, mechanical version of that warning.
+    commits_since = None
+    last_sha, code = run_git(repo_root, ["log", "-1", "--format=%H", "--", "docs/KANBAN.md"])
+    if code == 0 and last_sha:
+        count_out, count_code = run_git(repo_root, ["rev-list", "--count", f"{last_sha}..main"])
+        if count_code == 0 and count_out.isdigit():
+            commits_since = int(count_out)
+
     parsed = parse_kanban_sections(raw)
     return {
         "exists": True,
         "path": path,
+        "commits_since_update": commits_since,
         "raw": raw,
         "title": parsed["title"],
         "intro": parsed["intro"],
@@ -805,6 +824,67 @@ def build_status():
     }
 
 
+def summary_lines(payload):
+    """The board, as a handful of plain lines — THE single implementation of
+    "what does the board say right now".
+
+    Three consumers share it and therefore can never drift apart:
+      * `/api/summary`      — what the SessionStart hook curls when the panel is up
+      * `server.py --summary` — same numbers with no server running at all
+      * the panel's own headline sentence, which says the same thing in the UI
+
+    That last one is the point: a status line in chat that's computed
+    separately from the board is a second source of truth, and the two WILL
+    disagree eventually. This function is how they can't."""
+    agents = [w for w in payload.get("worktrees", []) if w.get("state") != "hq"]
+    working = sum(1 for w in agents if w["state"] == "active")
+    review = sum(1 for w in agents if w["state"] in ("needs_review", "stale_lock"))
+    stale = sum(1 for w in agents if w["state"] == "stale_lock")
+    sessions = (payload.get("captains") or {}).get("active_count", 0)
+
+    todo = blocked = 0
+    for sec in (payload.get("kanban") or {}).get("sections", []):
+        if sec.get("column") == "reference":
+            continue
+        for item in sec.get("items", []):
+            if item.get("done"):
+                continue
+            if sec.get("column") == "blocked":
+                blocked += 1
+            elif sec.get("column") == "todo":
+                todo += 1
+
+    dirty = payload.get("git_status") or []
+    newest = next((f for f in dirty if f.get("mtime")), None)
+
+    def s(n, word, plural_suffix="s"):
+        return "%d %s%s" % (n, word, "" if n == 1 else plural_suffix)
+
+    lines = ["Board ahora: " + " | ".join([
+        s(sessions, "sesion", "es"),
+        "%d agente despachado" % working if working == 1 else "%d agentes despachados" % working,
+        "%d para revisar" % review,
+        "%d en la cola" % todo,
+        s(blocked, "trabada"),
+        "%d sin commitear" % len(dirty),
+    ])]
+
+    if newest:
+        secs = max(0, time.time() - newest["mtime"])
+        when = "hace %d s" % int(secs) if secs < 60 else "hace %d min" % int(secs / 60)
+        lines.append("Ultimo archivo tocado: %s (%s)" % (newest["path"], when))
+    if stale:
+        lines.append("ATENCION: %s colgado(s) - worktree bloqueado sin proceso vivo."
+                     % s(stale, "agente"))
+    behind = (payload.get("kanban") or {}).get("commits_since_update")
+    if behind is not None and behind > KANBAN_STALE_AFTER_COMMITS:
+        lines.append("AVISO: docs/KANBAN.md no se toca desde hace %d commits en main - "
+                     "el tablero puede estar atrasado respecto de lo que ya se hizo." % behind)
+    lines.append("Nota: sesiones y agentes son poblaciones distintas. "
+                 "0 agentes NO significa que nadie este trabajando.")
+    return lines
+
+
 def build_worktree_detail(target_path):
     """Raw git detail for one soldado, on demand (not part of the main
     /api/status poll — kept separate so the frequent poll stays cheap and
@@ -847,6 +927,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self._serve_file("index.html", "text/html; charset=utf-8")
         elif parsed.path == "/api/status":
             self._serve_status()
+        elif parsed.path == "/api/summary":
+            self._serve_summary()
         elif parsed.path == "/api/worktree-detail":
             self._serve_worktree_detail(parsed.query)
         else:
@@ -881,6 +963,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _serve_summary(self):
+        """Plain text, not JSON: the only consumer is a shell hook that wants to
+        print it verbatim. Keeping it text means the hook needs no parser, and
+        no parser means no second place for the wording to drift."""
+        try:
+            body = ("\n".join(summary_lines(build_status())) + "\n").encode("utf-8")
+            self.send_response(200)
+        except Exception as exc:  # noqa: BLE001
+            body = ("summary unavailable: %s\n" % exc).encode("utf-8")
+            self.send_response(500)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
     def _serve_worktree_detail(self, query_string):
         params = parse_qs(query_string or "")
         target = (params.get("path") or [""])[0]
@@ -903,6 +1001,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 def main():
+    # `--summary` prints the board's own lines and exits, WITHOUT starting a
+    # server. This is what makes the session-opening status honest when nobody
+    # has the panel running: same code, same numbers, no daemon required.
+    if "--summary" in sys.argv[1:]:
+        try:
+            print("\n".join(summary_lines(build_status())))
+        except Exception as exc:  # noqa: BLE001
+            print("summary unavailable: %s" % exc, file=sys.stderr)
+            sys.exit(1)
+        return
+
     port = DEFAULT_PORT
     if len(sys.argv) > 1:
         try:

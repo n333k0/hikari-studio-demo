@@ -9,13 +9,23 @@
 > a form to fill). When the user gives new scope or direction, update
 > `docs/site-structure.md` in the same turn so the next session already knows.
 > **Open that reply with one line that mirrors the board.** The `SessionStart`
-> hook prints a `Board ahora:` line (agentes trabajando · para revisar · en la
-> cola · trabadas · sin commitear) read live from the running WebsiteOS panel.
-> Render it as a single compact sentence *before* the per-phase status, so the
-> chat and the panel never tell different stories. If the hook says the panel
-> isn't running, say so in that line instead of inventing counts — and never
-> restate the whole board in prose; it's a one-liner, the panel is where you
-> look at the detail.
+> hook prints a `Board ahora:` line — sesiones · agentes despachados · para
+> revisar · en la cola · trabadas · sin commitear, plus the last file touched.
+> Render it as one compact sentence *before* the per-phase status. Those
+> numbers come from `summary_lines()` in `.claude/dashboard/server.py`, the
+> same function the panel itself uses, over HTTP when the panel is running and
+> via `server.py --summary` when it isn't — so they are always available and
+> can never disagree with the board. **Never recompute them yourself, and never
+> invent them if the hook couldn't produce them** (it says so explicitly when
+> that happens).
+>
+> Two things that line must not be flattened: **sesiones ≠ agentes** (a session
+> is a Claude Code window, an agent is a dispatched worktree — "0 agentes" does
+> **not** mean nobody is working, and saying so is the exact bug this replaced),
+> and the `AVISO:` about `docs/KANBAN.md` being N commits behind main, which
+> means finished work may still be sitting in "Por hacer" — surface it, don't
+> swallow it. Never restate the whole board in prose; it's a one-liner, the
+> panel is where the detail lives.
 >
 > Then the per-phase status ("vista gorda"), then a short
 > **ready-to-review** list — one live link per distinct section that has

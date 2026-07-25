@@ -41,58 +41,28 @@ if [ -x .claude/dashboard/serve.sh ]; then
   done
 fi
 
-# --- Board summary FIRST: this is the single line the opening reply leads with,
-# so the chat and the panel can never tell different stories. Read live from the
-# panel's own API rather than recomputed here - one source of truth for the
-# counts, and no risk of the two drifting apart.
+# --- Board summary FIRST: this is the line the opening reply leads with, so the
+# chat and the panel can never tell different stories.
+#
+# Both branches below print output produced by the SAME function
+# (summary_lines() in server.py) - over HTTP when the panel is up, by running
+# the script directly when it isn't. That's the whole point: a status line
+# computed separately from the board is a second source of truth, and two
+# sources of truth eventually disagree. There is only one here, and it works
+# whether or not anyone remembered to start the panel.
 echo "--- Board ahora (one-line summary - lead the opening reply with this) ---"
+board=""
 if [ -n "$DASH_URL" ]; then
-  curl -fsS -m 3 "${DASH_URL}api/status" 2>/dev/null | python3 -c '
-import json, sys, time
-try:
-    d = json.load(sys.stdin)
-except Exception:
-    sys.exit(1)
-
-agents = [w for w in d.get("worktrees", []) if w.get("state") != "hq"]
-working = sum(1 for w in agents if w["state"] == "active")
-review  = sum(1 for w in agents if w["state"] in ("needs_review", "stale_lock"))
-stale   = sum(1 for w in agents if w["state"] == "stale_lock")
-sessions = (d.get("captains") or {}).get("active_count", 0)
-
-todo = blocked = 0
-for s in (d.get("kanban") or {}).get("sections", []):
-    if s.get("column") == "reference":
-        continue
-    for it in s.get("items", []):
-        if it.get("done"):
-            continue
-        if s.get("column") == "blocked":
-            blocked += 1
-        elif s.get("column") == "todo":
-            todo += 1
-
-dirty = d.get("git_status") or []
-newest = next((f for f in dirty if f.get("mtime")), None)
-bits = [
-    "%d sesion%s" % (sessions, "" if sessions == 1 else "es"),
-    "%d agente%s despachado%s" % (working, "" if working == 1 else "s", "" if working == 1 else "s"),
-    "%d para revisar" % review,
-    "%d en la cola" % todo,
-    "%d trabada%s" % (blocked, "" if blocked == 1 else "s"),
-    "%d sin commitear" % len(dirty),
-]
-print("Board ahora: " + " | ".join(bits))
-if newest:
-    mins = (time.time() - newest["mtime"]) / 60.0
-    when = "hace %d s" % int(mins * 60) if mins < 1 else "hace %d min" % int(mins)
-    print("Ultimo archivo tocado: %s (%s)" % (newest["path"], when))
-if stale:
-    print("ATENCION: %d agente(s) colgado(s) - worktree bloqueado sin proceso vivo." % stale)
-print("Nota: sesiones y agentes son poblaciones distintas. 0 agentes NO significa que nadie este trabajando.")
-' 2>/dev/null || echo "Panel corriendo en $DASH_URL pero no respondio /api/status - no inventes numeros, decilo asi."
+  board="$(curl -fsS -m 3 "${DASH_URL}api/summary" 2>/dev/null)" || board=""
+fi
+if [ -z "$board" ] && [ -f .claude/dashboard/server.py ]; then
+  # No panel (or it didn't answer): compute the identical numbers locally.
+  board="$(python3 .claude/dashboard/server.py --summary 2>/dev/null)" || board=""
+fi
+if [ -n "$board" ]; then
+  printf '%s\n' "$board"
 else
-  echo "Panel apagado - no hay numeros del board esta vez. Decilo asi en la primera linea, no inventes conteos."
+  echo "No se pudo leer el board - no inventes conteos, decilo asi en la primera linea."
 fi
 echo
 

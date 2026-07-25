@@ -804,6 +804,13 @@
       { n: cols.todo.length, text: "en la cola", tone: "", optional: true },
       { n: cols.blocked.length, text: plural(cols.blocked.length, "trabada", "trabadas"), tone: cols.blocked.length ? "alert" : "", optional: true },
     ];
+    // The tracker is hand-maintained; this is the mechanical "it's probably
+    // behind" signal, not a claim that any particular card is wrong.
+    const behind = (data.kanban || {}).commits_since_update;
+    if (behind != null && behind > 4) {
+      stats.push({ n: behind, text: "commits sin tocar el KANBAN", tone: "warn",
+        title: "main avanzó " + behind + " commits desde la última edición de docs/KANBAN.md. Puede haber trabajo terminado que sigue figurando como pendiente." });
+    }
     $("hud").innerHTML = stats.map((s) =>
       `<span class="stat${s.tone ? " t-" + s.tone : ""}${s.optional ? " optional" : ""}"${s.title ? ` title="${esc(s.title)}"` : ""}><b>${s.n}</b>${esc(s.text)}</span>`
     ).join("");
