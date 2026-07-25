@@ -20,31 +20,31 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
-### 2026-07-25 — Dashboard-up detection can false-negative once; retry before reporting "not running"
-- Context: a session's `SessionStart` hook reported the WebsiteOS dashboard
-  as "Not running," but `ps` showed the server process had been up since
-  10:20:33 — 31 minutes before this session's first-seen timestamp
-  (10:51:28). The user was looking at the panel in a browser the whole
-  time. Manually re-running `scripts/session-start-summary.sh` afterward
-  detected it correctly on the first try. Ruled out: the panel isn't a
-  single-connection server (`ThreadingHTTPServer`), so two sessions' hooks
-  probing at once shouldn't starve either one. No hook stderr was captured
-  at the time, so the exact transient cause (slow accept, momentary port
-  hiccup, something else) is unconfirmed — only the false negative itself
-  is confirmed, from the process-start-time vs. session-first-seen math.
-- Lesson: a single curl+grep probe against a local dev server is not
-  reliable enough to assert a negative ("not running") to the user — a
-  false "not running" causes a wrong status line and, worse, an unnecessary
-  duplicate `serve.sh` launch if someone acts on it. A false positive
-  ("running" when it's actually down) is comparatively harmless since the
-  printed URL just 404s. Detection should be biased toward one retry before
-  reporting the negative.
-- Apply: `session-start-summary.sh`'s dashboard probe now retries once
-  (0.3s later) on a port that's open-but-failed-the-grep before moving to
-  the next port / giving up. If this recurs after the retry, capture the
-  hook's actual stderr next time (curl's exit code, not just pass/fail) —
-  we don't yet have real forensic evidence of the underlying cause.
-- Refs: `scripts/session-start-summary.sh` → `dash_probe()`.
+### 2026-07-25 — `cmd | grep -q` under `pipefail` reports failure on success (the "dashboard not running" bug)
+- Context: the `SessionStart` hook reported the WebsiteOS panel as "Not
+  running" while the user had it open in a browser — twice, on two separate
+  days. The probe was `curl -fsS "$url" | grep -q "WebsiteOS"` inside a
+  script with `set -uo pipefail`. Measured, not guessed: `WebsiteOS` is at
+  **byte 23** of the page (it's in the `<title>`), so `grep -q` matches and
+  exits immediately while curl still has ~54KB to write; curl takes
+  SIGPIPE/EPIPE and exits **23**; `pipefail` then hands the pipeline curl's
+  failure even though the grep succeeded. 12 back-to-back runs gave
+  `23 0 0 23 0 23 0 0 23 0 0 0` — a ~1-in-3 false negative, and it gets
+  worse as the board grows, because a bigger page = more unwritten bytes.
+- Lesson: **an early-exiting reader (`grep -q`, `head`, `read`) plus
+  `pipefail` turns a successful match into a failed command.** The first fix
+  attempt diagnosed this as an unexplained transient and added a retry,
+  which only squared the odds (~11%) and left the wrong cause in the log —
+  a symptom-level "fix" that shipped the same bug twice. When a check fails
+  intermittently, get the actual exit code before theorising; `echo $?` in a
+  loop found this in one command.
+- Apply: never pipe into an early-exiting matcher under `pipefail`. Capture
+  the body first, then match it: `body="$(curl ...)" || return 1` +
+  `case "$body" in *needle*)`. Grep the repo for `curl .*|` before adding
+  another probe — this was the only instance, keep it that way.
+- Refs: `scripts/session-start-summary.sh` → `dash_probe()`;
+  supersedes the earlier "retry before reporting not running" entry, whose
+  diagnosis was wrong.
 
 ### 2026-07-25 — Fixed scale is the feature in furniture AR, not a limitation
 - Context: asked whether we should let users resize the lamp in AR, "like IKEA".

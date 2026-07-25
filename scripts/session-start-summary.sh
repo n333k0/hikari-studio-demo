@@ -30,17 +30,26 @@ PAGES_BASE="https://n333k0.github.io/hikari-studio-demo"
 # timeout. The grep for the panel's own name keeps us from announcing somebody
 # else's localhost server as the dashboard.
 port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") >/dev/null 2>&1; }
-# One retry on a genuinely-open port before giving up on it: seen once
-# (2026-07-25) where a port that had been open and serving for 30+ minutes
-# still failed the curl+grep check on the first try, for no reproducible
-# reason — a bare "not running" is a false claim if the retry would have
-# caught it, so pay one extra ~0.3s round trip rather than risk that.
-dash_probe() { curl -fsS -m 2 "http://localhost:$1/" 2>/dev/null | grep -q "WebsiteOS"; }
+# Read the body into a variable and match it there — deliberately NOT
+# `curl ... | grep -q`. That pipeline reported "not running" for a panel that
+# was up, roughly one run in three, and the cause is not flakiness:
+# "WebsiteOS" sits at byte 23 of the page (it's in the <title>), so `grep -q`
+# matches and exits immediately while curl still has ~54KB to write. curl
+# takes SIGPIPE/EPIPE and exits 23, and `set -o pipefail` (line 19) hands us
+# that failure even though the grep succeeded. A bigger board = a bigger page
+# = more often fatal, which is why it looked like it "started" failing.
+# An earlier fix added one retry, which only squared the odds (~11%) instead
+# of removing them. No pipe, no SIGPIPE, no false negative.
+dash_probe() {
+  local body
+  body="$(curl -fsS -m 2 "http://localhost:$1/" 2>/dev/null)" || return 1
+  case "$body" in *WebsiteOS*) return 0 ;; *) return 1 ;; esac
+}
 DASH_URL=""
 if [ -x .claude/dashboard/serve.sh ]; then
   for p in $(seq 8765 8774); do
     port_open "$p" || continue
-    if dash_probe "$p" || { sleep 0.3; dash_probe "$p"; }; then
+    if dash_probe "$p"; then
       DASH_URL="http://localhost:$p/"
       break
     fi
