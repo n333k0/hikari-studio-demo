@@ -46,7 +46,8 @@ an unformatted bullet still renders, just with less structure.
   https://n333k0.github.io/hikari-studio-demo/productos/ensui-d70/
 
 - **Pendant hang, unproven on hardware (new 2026-07-25).** The D70 model now
-  carries its own 1,85 m drop plus a y=0 anchor so AR shows it *hanging*
+  carries its own 1,29 m drop (84 cm of cord from a 2,40 m ceiling) plus a
+  y=0 anchor so AR shows it *hanging*
   instead of resting on the floor (`scripts/3d/pendant_hang.py`). The premise —
   that Quick Look / Scene Viewer rest `bbox.min.y` on the detected plane — has
   never been confirmed on a device in this project. Confirm on the D70 before

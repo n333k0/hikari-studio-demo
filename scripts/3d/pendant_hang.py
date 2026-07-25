@@ -4,7 +4,7 @@
         --glb models/ensui-d70.glb \
         --shade tripo_node_980e5331-29eb-4741-bc4e-ed3519151ac7 \
         --cord cord_extension --canopy cord_canopy \
-        --shade-bottom 1.85 --ceiling 2.40
+        --shade-bottom 1.29 --ceiling 2.40
 
 Why this exists: no web AR runtime has a ceiling anchor or a placement-height
 API — model-viewer's `ar-placement` only accepts floor|wall, Scene Viewer has no
@@ -16,8 +16,8 @@ issue #998) is to bake the height into the geometry, which is what this does:
 
     before                          after
     z 1.883  canopy                 z 2.40   canopy (at the ceiling)
-    z 0.27-1.87  cord (upward)      z 2.12-2.40  cord
-    z 0-0.27  SHADE (on the floor)  z 1.85-2.12  SHADE  <- hangs
+    z 0.27-1.87  cord (upward)      z 1.56-2.40  cord (84 cm drop)
+    z 0-0.27  SHADE (on the floor)  z 1.29-1.56  SHADE  <- hangs
                                     z 0      tiny floor anchor
 
 Re-run it against the pristine GLB, not its own output — it is not idempotent.
@@ -43,8 +43,10 @@ def parse_args():
     p.add_argument('--shade', required=True, help='object name of the shade mesh')
     p.add_argument('--cord', help='object name of the cord mesh (scaled to fit)')
     p.add_argument('--canopy', help='object name of the ceiling-rose mesh')
-    p.add_argument('--shade-bottom', type=float, default=1.85,
-                   help='height of the shade underside above the floor, metres')
+    p.add_argument('--shade-bottom', type=float, default=1.29,
+                   help='height of the shade underside above the floor, metres '
+                        '(1.29 with a 2.40 ceiling = an 84cm cord drop, the '
+                        'proportion agreed for the Ensui family)')
     p.add_argument('--ceiling', type=float, default=2.40,
                    help='assumed ceiling height, metres — the canopy top lands here')
     p.add_argument('--anchor-size', type=float, default=0.001,

@@ -102,7 +102,7 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
             no longer a one-off: it lives in `scripts/3d/export_usdz.py`, which
             is what stops it regressing a third time.
       - [ ] **Pendant hang confirmed on a real device.** The D70 model was
-            re-authored 2026-07-25 so it *hangs* (shade at 1,85 m, canopy at
+            re-authored 2026-07-25 so it *hangs* (shade at 1,29 m, canopy at
             2,40 m, anchor at y=0) instead of resting on the floor — see
             `scripts/3d/README.md`. Verified locally only: bbox `0 → 2.40 m`,
             anchor survives the GLB round-trip, preview framing screenshotted

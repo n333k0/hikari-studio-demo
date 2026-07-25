@@ -60,7 +60,7 @@ blender --background --python scripts/3d/pendant_hang.py -- \
   --glb models/ensui-d70.glb \
   --shade tripo_node_980e5331-29eb-4741-bc4e-ed3519151ac7 \
   --cord cord_extension --canopy cord_canopy \
-  --shade-bottom 1.85 --ceiling 2.40
+  --shade-bottom 1.29 --ceiling 2.40
 ```
 
 **The problem it solves.** No web AR runtime has a ceiling anchor or a
@@ -76,8 +76,8 @@ the drop into the geometry:
 ```
 before                          after
 z 1.883  canopy                 z 2.40   canopy (at the ceiling)
-z 0.27–1.87  cord (upward)      z 2.12–2.40  cord
-z 0–0.27  SHADE (on the floor)  z 1.85–2.12  SHADE  ← hangs
+z 0.27–1.87  cord (upward)      z 1.56–2.40  cord (84 cm drop)
+z 0–0.27  SHADE (on the floor)  z 1.29–1.56  SHADE  ← hangs
                                 z 0      1 mm floor anchor
 ```
 
@@ -158,7 +158,7 @@ The `<model-viewer>` camera is set declaratively per page. Three things bite:
   larger radius without raising the max does nothing — model-viewer's own FAQ
   calls this the #1 cause of "my camera settings have no effect".
 - **Use metres, not `%`, for the radius on a hung model.** The `%` basis is a
-  bounding sphere centred on `camera-target`; with ~1.85 m of empty space below
+  bounding sphere centred on `camera-target`; with ~1.3 m of empty space below
   the lamp that sphere is enormous and the percentage becomes meaningless.
 - **`.pdp-ar-viewer` needs `height: auto` for its `aspect-ratio` to apply** —
   model-viewer ships `:host { height: 150px }` in its shadow DOM, which
