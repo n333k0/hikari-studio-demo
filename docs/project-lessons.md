@@ -20,6 +20,32 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — Dashboard-up detection can false-negative once; retry before reporting "not running"
+- Context: a session's `SessionStart` hook reported the WebsiteOS dashboard
+  as "Not running," but `ps` showed the server process had been up since
+  10:20:33 — 31 minutes before this session's first-seen timestamp
+  (10:51:28). The user was looking at the panel in a browser the whole
+  time. Manually re-running `scripts/session-start-summary.sh` afterward
+  detected it correctly on the first try. Ruled out: the panel isn't a
+  single-connection server (`ThreadingHTTPServer`), so two sessions' hooks
+  probing at once shouldn't starve either one. No hook stderr was captured
+  at the time, so the exact transient cause (slow accept, momentary port
+  hiccup, something else) is unconfirmed — only the false negative itself
+  is confirmed, from the process-start-time vs. session-first-seen math.
+- Lesson: a single curl+grep probe against a local dev server is not
+  reliable enough to assert a negative ("not running") to the user — a
+  false "not running" causes a wrong status line and, worse, an unnecessary
+  duplicate `serve.sh` launch if someone acts on it. A false positive
+  ("running" when it's actually down) is comparatively harmless since the
+  printed URL just 404s. Detection should be biased toward one retry before
+  reporting the negative.
+- Apply: `session-start-summary.sh`'s dashboard probe now retries once
+  (0.3s later) on a port that's open-but-failed-the-grep before moving to
+  the next port / giving up. If this recurs after the retry, capture the
+  hook's actual stderr next time (curl's exit code, not just pass/fail) —
+  we don't yet have real forensic evidence of the underlying cause.
+- Refs: `scripts/session-start-summary.sh` → `dash_probe()`.
+
 ### 2026-07-25 — Fixed scale is the feature in furniture AR, not a limitation
 - Context: asked whether we should let users resize the lamp in AR, "like IKEA".
   IKEA Place specifically does *not* allow it, for the opposite reason to the

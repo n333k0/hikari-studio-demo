@@ -30,11 +30,17 @@ PAGES_BASE="https://n333k0.github.io/hikari-studio-demo"
 # timeout. The grep for the panel's own name keeps us from announcing somebody
 # else's localhost server as the dashboard.
 port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") >/dev/null 2>&1; }
+# One retry on a genuinely-open port before giving up on it: seen once
+# (2026-07-25) where a port that had been open and serving for 30+ minutes
+# still failed the curl+grep check on the first try, for no reproducible
+# reason — a bare "not running" is a false claim if the retry would have
+# caught it, so pay one extra ~0.3s round trip rather than risk that.
+dash_probe() { curl -fsS -m 2 "http://localhost:$1/" 2>/dev/null | grep -q "WebsiteOS"; }
 DASH_URL=""
 if [ -x .claude/dashboard/serve.sh ]; then
   for p in $(seq 8765 8774); do
     port_open "$p" || continue
-    if curl -fsS -m 2 "http://localhost:$p/" 2>/dev/null | grep -q "WebsiteOS"; then
+    if dash_probe "$p" || { sleep 0.3; dash_probe "$p"; }; then
       DASH_URL="http://localhost:$p/"
       break
     fi
