@@ -441,3 +441,25 @@ Promote anything structural into the right home doc too:
 - Lesson: list expected files before editing; compare after; revert surprises.
 - Apply: follow Scope Protection every change; commit only intended files.
 - Refs: change-workflow.md → Scope Protection.
+
+### 2026-07-25 — A "para revisar" worktree can go stale from time, not just collision
+- Context: a docs-writing worktree (KANBAN.md + Validated? status) sat unmerged
+  while direct commits landed on main resolving the exact items it still listed
+  as open (iPhone AR, local-vs-live reconciliation). The board's "para revisar"
+  card read like a mechanical "just merge it" step; nothing on the card said
+  the branch point was behind main. Caught only because the session manually
+  ran `git log main..branch` before merging — the ARCHITECTURE.md §13
+  "flag, don't edit" rule doesn't cover this, since it's about two *concurrent*
+  agents colliding on one file, not one branch aging past a moving main.
+- Lesson: `server.py` already computes `w.behind` (commits behind main) for
+  every worktree, but `index.html`'s `needs_review` card only showed it in the
+  click-through drawer, not on the compact card — so the one signal that would
+  have flagged staleness at a glance was one click away from where a session
+  actually decides whether to merge.
+- Apply: the `needs_review` card now shows "se ramificó N commits atrás de
+  main" directly in the card line + a tag when `behind > 0`, so staleness is
+  visible without opening the drawer. Still re-diff before merging anything
+  that touches docs/status files — the card flags the risk, it doesn't resolve
+  the merge decision.
+- Refs: ARCHITECTURE.md §13 (claims/flag-don't-edit are collision-focused, not
+  staleness-focused); `.claude/dashboard/index.html` `needs_review` card.

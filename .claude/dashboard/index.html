@@ -616,10 +616,14 @@
 
       if (w.state === "needs_review") {
         const dirty = w.dirty_count ? ` y ${w.dirty_count} ${plural(w.dirty_count, "archivo sin commitear", "archivos sin commitear")}` : "";
+        const stale = w.behind > 0
+          ? ` Se ramificó <b>${w.behind}</b> ${plural(w.behind, "commit", "commits")} atrás de main — releer el diff contra el main actual antes de mergear, el contenido puede haber quedado desactualizado por trabajo hecho directo en main mientras tanto.`
+          : "";
         cols.review.push(card(Object.assign({}, base, {
           tone: "warn",
-          line: `Terminó y dejó <b>${w.ahead}</b> ${plural(w.ahead, "commit", "commits")} sin mergear a main${dirty}. Falta revisarlo y mergearlo.`,
-          tags: tags.concat([{ text: w.ahead + " sin mergear", tone: "warn" }]),
+          line: `Terminó y dejó <b>${w.ahead}</b> ${plural(w.ahead, "commit", "commits")} sin mergear a main${dirty}.${stale} Falta revisarlo y mergearlo.`,
+          tags: tags.concat([{ text: w.ahead + " sin mergear", tone: "warn" }])
+            .concat(w.behind > 0 ? [{ text: w.behind + " atrás de main", tone: "alert" }] : []),
           sort: -(w.ahead || 0),
         })));
         return;
