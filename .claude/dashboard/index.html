@@ -1,0 +1,1200 @@
+<!doctype html>
+<title>WebsiteOS</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" id="faviconLink">
+<style>
+  /* ============================================================
+     WebsiteOS — one-screen operations board.
+
+     Design intent: everything that matters fits in a single viewport, no
+     page scroll. The board is the page. Five columns follow the real
+     lifecycle of work in this repo (por hacer -> trabado -> en curso ->
+     para revisar -> listo); agents and kanban items are the SAME kind of
+     card, because to a human watching the repo they're the same thing:
+     work in some state. Detail that would make the page taller lives in a
+     slide-over drawer instead.
+
+     Language: plain Spanish. No metaphors ("soldados", "capitanes") — the
+     panel says "agente" and "sesión". Colour is never the only signal:
+     every state also carries a dot glyph + a text label.
+     Data source: server.py (git + filesystem, recomputed every request).
+     ============================================================ */
+  :root {
+    --accent: #E5381F;          /* brand only — never a status colour */
+
+    --bg: #F1F1EF;
+    --surface: #FFFFFF;
+    --surface-2: #FAFAF8;
+    --line: #E3E3DE;
+    --line-strong: #CFCFC8;
+    --ink: #17171A;
+    --ink-2: #4A4A50;
+    --ink-3: #77777E;
+    --ink-4: #9C9CA3;
+
+    --working: #1B6FCC;         /* en curso */
+    --warn:    #A96A05;         /* para revisar */
+    --alert:   #6D28D9;         /* roto / huérfano (violeta, lejos del rojo marca) */
+    --good:    #1B7A49;         /* listo */
+    --idle:    #8E8E96;         /* en la cola */
+
+    --working-bg: rgba(27,111,204,0.10);
+    --warn-bg:    rgba(169,106,5,0.11);
+    --alert-bg:   rgba(109,40,217,0.10);
+    --good-bg:    rgba(27,122,73,0.10);
+    --idle-bg:    rgba(142,142,150,0.12);
+
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --radius: 3px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101012;
+      --surface: #1A1A1E;
+      --surface-2: #212127;
+      --line: #2C2C33;
+      --line-strong: #3C3C45;
+      --ink: #ECECEF;
+      --ink-2: #B9B9C1;
+      --ink-3: #8C8C96;
+      --ink-4: #6C6C76;
+
+      --working: #6BA6F0;
+      --warn:    #E0A33C;
+      --alert:   #A78BFA;
+      --good:    #57C08B;
+      --idle:    #85858F;
+
+      --working-bg: rgba(107,166,240,0.14);
+      --warn-bg:    rgba(224,163,60,0.14);
+      --alert-bg:   rgba(167,139,250,0.14);
+      --good-bg:    rgba(87,192,139,0.14);
+      --idle-bg:    rgba(133,133,143,0.16);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ink);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;              /* the board scrolls, the page never does */
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.92em;
+    background: var(--idle-bg);
+    padding: 0.05em 0.35em;
+    border-radius: 2px;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  ::selection { background: var(--accent); color: #fff; }
+  :focus-visible { outline: 2px solid var(--working); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+
+  /* ---------- app shell: four rows, the board takes whatever's left ------- */
+  .app {
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 16px; height: 46px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .brandmark {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.02em;
+    white-space: nowrap; color: var(--ink-3);
+  }
+  .brandmark b { color: var(--ink); font-weight: 700; }
+  .project {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.01em;
+    white-space: nowrap; color: var(--accent);
+    padding-left: 12px; border-left: 1px solid var(--line-strong);
+  }
+
+  .pulse { display: flex; gap: 3px; align-items: center; height: 16px; }
+  .pulse button {
+    width: 9px; height: 9px; padding: 0; border: 0; border-radius: 50%;
+    background: var(--idle);
+  }
+  .pulse button.s-active { background: var(--working); }
+  .pulse button.s-needs_review { background: var(--warn); }
+  .pulse button.s-stale_lock { background: var(--alert); }
+  .pulse button.s-idle { background: var(--idle); opacity: .5; }
+  @media (prefers-reduced-motion: no-preference) {
+    .pulse button.s-active, .pulse button.s-stale_lock { animation: breathe 1.7s ease-in-out infinite; }
+  }
+  @keyframes breathe { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+  .hud { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; overflow: hidden; }
+  .stat {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px 3px 8px; border-radius: 40px;
+    background: var(--idle-bg); color: var(--ink-2);
+    font-size: 11.5px; white-space: nowrap;
+  }
+  .stat b { font-family: var(--mono); font-weight: 700; color: var(--ink); font-size: 12px; }
+  .stat.t-working { background: var(--working-bg); color: var(--working); }
+  .stat.t-working b { color: var(--working); }
+  .stat.t-warn { background: var(--warn-bg); color: var(--warn); }
+  .stat.t-warn b { color: var(--warn); }
+  .stat.t-alert { background: var(--alert-bg); color: var(--alert); }
+  .stat.t-alert b { color: var(--alert); }
+  .stat.t-good { background: var(--good-bg); color: var(--good); }
+  .stat.t-good b { color: var(--good); }
+
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .freshness {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-4);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .freshness.stale { color: var(--warn); }
+  .icon-btn {
+    border: 1px solid var(--line-strong); background: var(--surface);
+    border-radius: 40px; padding: 3px 11px; font-size: 11.5px; color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .icon-btn:hover { border-color: var(--ink-3); color: var(--ink); }
+  .icon-btn[aria-pressed="true"] { background: var(--working-bg); border-color: var(--working); color: var(--working); }
+
+  /* ---------- summary line: the "at a glance" sentence ---------- */
+  .summary {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 16px; min-height: 40px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+    font-size: 13.5px; color: var(--ink-2);
+  }
+  .summary b { color: var(--ink); font-weight: 700; }
+  .summary .lead-dot {
+    width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; background: var(--good);
+  }
+  .summary.t-working .lead-dot { background: var(--working); }
+  .summary.t-warn .lead-dot { background: var(--warn); }
+  .summary.t-alert .lead-dot { background: var(--alert); }
+  @media (prefers-reduced-motion: no-preference) {
+    .summary.t-working .lead-dot, .summary.t-alert .lead-dot { animation: breathe 1.7s ease-in-out infinite; }
+  }
+  .summary-text { min-width: 0; }
+  .summary-alarm {
+    margin-left: auto; flex: 0 0 auto;
+    background: var(--alert-bg); color: var(--alert);
+    border-radius: 40px; padding: 3px 12px; font-size: 11.5px; font-weight: 600;
+  }
+
+  /* ---------- board ---------- */
+  .board {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line);
+    min-height: 0;
+    overflow-x: auto;
+  }
+  .col {
+    display: flex; flex-direction: column; min-height: 0; min-width: 0;
+    background: var(--bg);
+  }
+  .col-head {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 10px 12px 8px;
+    border-top: 3px solid var(--idle);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .col-todo    .col-head { border-top-color: var(--idle); }
+  .col-blocked .col-head { border-top-color: var(--alert); }
+  .col-doing   .col-head { border-top-color: var(--working); }
+  .col-review  .col-head { border-top-color: var(--warn); }
+  .col-done    .col-head { border-top-color: var(--good); }
+  /* nowrap so every column header is exactly one line tall and the five
+     columns line up; the hint is what gives way when space runs out. */
+  .col-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); font-weight: 700; white-space: nowrap; }
+  .col-count {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    background: var(--idle-bg); border-radius: 40px; padding: 1px 7px;
+  }
+  .col-hint {
+    font-size: 10.5px; color: var(--ink-4); margin-left: auto; text-align: right;
+    line-height: 1.25; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .col-body {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    padding: 8px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .col-body::-webkit-scrollbar { width: 8px; }
+  .col-body::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; }
+  .col-body::-webkit-scrollbar-track { background: transparent; }
+
+  .empty {
+    font-size: 11.5px; color: var(--ink-4); font-style: italic;
+    padding: 10px 8px; text-align: center; margin: 0;
+  }
+
+  /* ---------- cards ---------- */
+  .card {
+    display: block; width: 100%; text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--idle);
+    border-radius: var(--radius);
+    padding: 9px 10px;
+    transition: border-color .12s ease, transform .12s ease;
+  }
+  .card:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+  .card.t-working { border-left-color: var(--working); }
+  .card.t-warn    { border-left-color: var(--warn); }
+  /* Only genuinely broken things get a filled card. "Trabado" is a normal
+     state — it gets the accent edge, not a wall of colour. */
+  .card.t-alert   { border-left-color: var(--alert); }
+  .card.is-broken { background: var(--alert-bg); border-color: var(--alert); }
+  .card.t-good    { border-left-color: var(--good); }
+  .card.t-idle    { border-left-color: var(--idle); }
+  .card.is-muted  { opacity: .62; }
+  .card.is-selected { border-color: var(--working); box-shadow: 0 0 0 1px var(--working); }
+
+  .card-head { display: flex; gap: 7px; align-items: flex-start; }
+  .card-dot {
+    flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; margin-top: 5px;
+    background: var(--idle);
+  }
+  .t-working .card-dot { background: var(--working); }
+  .t-warn .card-dot { background: var(--warn); }
+  .t-alert .card-dot { background: var(--alert); }
+  .t-good .card-dot { background: var(--good); }
+  @media (prefers-reduced-motion: no-preference) {
+    .t-working .card-dot { animation: breathe 1.7s ease-in-out infinite; }
+  }
+  .card-title {
+    font-size: 12.5px; font-weight: 600; color: var(--ink); line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  .card-line {
+    margin: 5px 0 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  .card-line code { font-size: 10.5px; }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+  .tag {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-3); background: var(--idle-bg); border-radius: 40px; padding: 1px 7px;
+    white-space: nowrap;
+  }
+  .tag.g-working { color: var(--working); background: var(--working-bg); }
+  .tag.g-warn { color: var(--warn); background: var(--warn-bg); }
+  .tag.g-alert { color: var(--alert); background: var(--alert-bg); }
+  .tag.g-good { color: var(--good); background: var(--good-bg); }
+  .tag.g-rank { color: var(--ink); font-weight: 700; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card.flash { animation: flashCard 1.6s ease-out 1; }
+  }
+  @keyframes flashCard {
+    0% { box-shadow: 0 0 0 2px var(--working); }
+    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 16px; height: 26px;
+    background: var(--surface); border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-4);
+    white-space: nowrap; overflow: hidden;
+  }
+  .statusbar span { overflow: hidden; text-overflow: ellipsis; }
+  .statusbar .right { margin-left: auto; }
+
+  /* ---------- drawer (detail without making the page taller) ---------- */
+  .scrim {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.28);
+    backdrop-filter: blur(2px); z-index: 40;
+  }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(480px, 92vw);
+    background: var(--surface); border-left: 1px solid var(--line-strong);
+    z-index: 50; display: flex; flex-direction: column;
+    box-shadow: -12px 0 40px rgba(0,0,0,0.14);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .drawer { animation: slideIn .16s ease-out 1; }
+  }
+  @keyframes slideIn { from { transform: translateX(14px); opacity: .4; } to { transform: none; opacity: 1; } }
+  .drawer-head {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 14px 16px; border-bottom: 1px solid var(--line);
+  }
+  .drawer-head-main { min-width: 0; }
+  .drawer-title { font-size: 15px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+  .drawer-sub { margin-top: 3px; font-size: 11.5px; color: var(--ink-3); overflow-wrap: anywhere; }
+  .drawer-close {
+    margin-left: auto; flex: 0 0 auto; border: 1px solid var(--line-strong);
+    background: var(--surface); border-radius: 40px; width: 26px; height: 26px; line-height: 1;
+    color: var(--ink-3);
+  }
+  .drawer-close:hover { color: var(--ink); border-color: var(--ink-3); }
+  .drawer-body { flex: 1 1 auto; overflow-y: auto; padding: 14px 16px 28px; }
+  .drawer-body h3 {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--ink-3); margin: 18px 0 7px; font-weight: 700;
+  }
+  .drawer-body h3:first-child { margin-top: 0; }
+  .drawer-body p { margin: 0 0 9px; font-size: 12.5px; color: var(--ink-2); overflow-wrap: anywhere; }
+  .drawer-body ul { margin: 0 0 9px; padding-left: 17px; font-size: 12.5px; color: var(--ink-2); }
+  .drawer-body li { margin-bottom: 4px; overflow-wrap: anywhere; }
+  .kv { display: grid; grid-template-columns: 104px minmax(0,1fr); gap: 3px 10px; font-size: 12px; margin: 0 0 4px; }
+  .kv dt { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-4); padding-top: 2px; }
+  .kv dd { margin: 0; color: var(--ink-2); overflow-wrap: anywhere; }
+  .rawblock {
+    font-family: var(--mono); font-size: 11px; line-height: 1.55;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 8px 10px; overflow-x: auto; white-space: pre; color: var(--ink-2);
+  }
+  .rawlist { list-style: none; margin: 0; padding: 0; font-family: var(--mono); font-size: 11px; }
+  .rawlist li { padding: 2px 0; border-bottom: 1px solid var(--line); color: var(--ink-2); white-space: pre-wrap; }
+  .rawlist li:last-child { border-bottom: 0; }
+  .note { font-size: 11.5px; color: var(--ink-4); font-style: italic; }
+
+  /* ---------- help popover ---------- */
+  .helppop {
+    position: fixed; top: 52px; right: 16px; width: min(430px, 92vw); z-index: 60;
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius);
+    box-shadow: 0 16px 44px rgba(0,0,0,0.18); padding: 15px 16px;
+    font-size: 12px; color: var(--ink-2);
+    max-height: calc(100dvh - 70px); overflow-y: auto;
+  }
+  .helppop h4 { margin: 0 0 8px; font-size: 12.5px; color: var(--ink); }
+  .helppop p { margin: 0 0 9px; }
+  .helppop p:last-child { margin-bottom: 0; }
+  .helppop dl { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 4px 9px; margin: 0 0 10px; }
+  .helppop dt { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .helppop dd { margin: 0; color: var(--ink-3); }
+  .swatch { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  /* ---------- narrow screens: the board scrolls sideways, nothing hides --- */
+  @media (max-width: 1180px) {
+    .board { grid-template-columns: repeat(5, minmax(250px, 1fr)); }
+    .col-hint { display: none; }
+  }
+  @media (max-width: 900px) {
+    .project { padding-left: 8px; }
+    .hud .stat.optional { display: none; }
+    .summary { font-size: 12.5px; }
+  }
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <span class="brandmark">website<b>OS</b></span>
+    <span class="project" id="projectName">…</span>
+    <div class="pulse" id="pulse" role="group" aria-label="Agentes en esta máquina"></div>
+    <div class="hud" id="hud"></div>
+    <div class="topbar-right">
+      <span class="freshness" id="freshness">conectando…</span>
+      <button type="button" class="icon-btn" id="alertsToggle" aria-pressed="false"
+        title="Sonido + notificaciones del navegador cuando algo cambia de estado">🔕 alertas</button>
+      <button type="button" class="icon-btn" id="helpToggle" aria-expanded="false" aria-controls="helpPop"
+        title="Qué muestra y qué NO puede ver este panel">¿qué es esto?</button>
+    </div>
+  </header>
+
+  <div class="summary" id="summary">
+    <span class="lead-dot" aria-hidden="true"></span>
+    <span class="summary-text" id="summaryText">Leyendo el estado del repositorio…</span>
+  </div>
+
+  <main class="board" id="board"></main>
+
+  <footer class="statusbar">
+    <span id="sbRepo">—</span>
+    <span class="right" id="sbMeta"></span>
+  </footer>
+</div>
+
+<div class="helppop" id="helpPop" hidden>
+  <h4>Qué estás mirando</h4>
+  <p>Un tablero en vivo del repositorio: cada tarjeta es una unidad de trabajo y
+     la columna dice en qué estado está. Se recalcula solo cada 5 segundos desde
+     git y el sistema de archivos — nada acá es una captura vieja.</p>
+  <dl>
+    <dt><span class="swatch" style="background:var(--idle)"></span> Por hacer</dt>
+    <dd>Ítems de <code>docs/KANBAN.md</code> que nadie tomó.</dd>
+    <dt><span class="swatch" style="background:var(--alert)"></span> Trabado</dt>
+    <dd>Espera una decisión tuya o que se destrabe otra cosa.</dd>
+    <dt><span class="swatch" style="background:var(--working)"></span> En curso</dt>
+    <dd>Agentes trabajando ahora + cambios sin commitear.</dd>
+    <dt><span class="swatch" style="background:var(--warn)"></span> Para revisar</dt>
+    <dd>Un agente terminó y dejó trabajo sin mergear, o se colgó con el worktree trabado.</dd>
+    <dt><span class="swatch" style="background:var(--good)"></span> Listo</dt>
+    <dd>Commits recientes en <code>main</code> y agentes que ya cerraron.</dd>
+  </dl>
+  <p><b>Lo que este panel NO puede ver:</b> una sesión de Claude Code abierta que
+     todavía no despachó nada y no escribió su heartbeat en
+     <code>.agent-state/captains/*.md</code> es invisible acá. No existe forma de
+     detectar "toda ventana de chat abierta"; solo actividad que deja huella en
+     el disco.</p>
+  <p class="note">Clic en cualquier tarjeta para ver el detalle crudo (git log,
+     git status, el claim del agente). Esc cierra.</p>
+</div>
+
+<script>
+(function () {
+  const POLL_MS = 5000;
+
+  // Board columns, in lifecycle order. `id` is what buildCards() keys on.
+  const COLUMNS = [
+    { id: "todo",    title: "Por hacer",    hint: "nadie lo tomó" },
+    { id: "blocked", title: "Trabado",      hint: "espera un desbloqueo" },
+    { id: "doing",   title: "En curso",     hint: "pasando ahora" },
+    { id: "review",  title: "Para revisar", hint: "falta tu visto bueno" },
+    { id: "done",    title: "Listo",        hint: "cerrado hace poco" },
+  ];
+
+  const STATE_WORD = {
+    active: "trabajando",
+    idle: "sin pendientes",
+    needs_review: "espera revisión",
+    stale_lock: "colgado",
+    hq: "checkout principal",
+  };
+
+  const state = {
+    data: null,
+    alertsEnabled: (() => { try { return localStorage.getItem("websiteos.alerts") === "1"; } catch (e) { return false; } })(),
+    prevByKey: null,
+    flashKeys: new Set(),
+    selected: null,       // id of the card currently open in the drawer
+    drawerId: null,       // what the drawer DOM currently shows
+    drawerSig: null,      // content signature of that render, to skip no-op redraws
+    detailCache: {},
+    lastFetchAt: null,
+    connected: false,
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- text helpers -------------------------------------------------
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  // Minimal inline markdown, applied to ALREADY-ESCAPED text so nothing coming
+  // out of KANBAN.md or a claim file can inject markup.
+  function md(raw) {
+    return esc(raw)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+      .replace(/~~([^~]+)~~/g, "<s>$1</s>")
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+      .replace(/(^|[\s(])(https?:\/\/[^\s)<]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+  }
+  function ago(seconds) {
+    const s = Math.max(0, Math.floor(Number(seconds) || 0));
+    if (s < 60) return `hace ${s} s`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `hace ${m} min`;
+    const h = Math.floor(m / 60);
+    if (h < 48) return `hace ${h} h`;
+    return `hace ${Math.floor(h / 24)} d`;
+  }
+  function dur(seconds) {
+    const s = Math.max(0, Math.floor(Number(seconds) || 0));
+    if (s < 60) return `${s} s`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m} min`;
+    const h = Math.floor(m / 60);
+    return h < 48 ? `${h} h ${m % 60} min` : `${Math.floor(h / 24)} d`;
+  }
+  function epochOf(iso) {
+    if (!iso) return 0;
+    const t = Date.parse(iso);
+    return isNaN(t) ? 0 : t / 1000;
+  }
+  function shortPath(p, root) {
+    if (!p) return "";
+    if (root && p.startsWith(root)) {
+      const rest = p.slice(root.length).replace(/^\/+/, "");
+      return rest ? "…/" + rest : "(raíz del repo)";
+    }
+    return p;
+  }
+  function agentShortId(w) {
+    const b = w.branch || "";
+    const m = b.match(/^worktree-agent-([0-9a-f]+)$/);
+    if (m) return m[1].slice(0, 7);
+    return b || (w.path || "").split("/").pop() || "?";
+  }
+  function keyOf(w) { return String(w.branch || w.path || "").replace(/[^a-zA-Z0-9_-]/g, "-"); }
+  // Card titles are plain text (never rendered as markdown), so strip the
+  // markers rather than leaking `**bold**` / `~~done~~` into the UI.
+  function plain(s) { return String(s == null ? "" : s).replace(/[`*~]/g, "").trim(); }
+  function plural(n, one, many) { return n === 1 ? one : many; }
+
+  // ---------- payload -> board cards ---------------------------------------
+  // One card shape for everything, so an agent and a backlog item sit in the
+  // same column and read the same way.
+  function card(o) {
+    return Object.assign({ tone: "idle", tags: [], line: "", sort: 0, muted: false, broken: false }, o);
+  }
+
+  function agentTitle(w) {
+    if (w.claim && w.claim.task) return w.claim.task;
+    if (w.commit_subject) return w.commit_subject;
+    return "Agente sin tarea declarada";
+  }
+
+  function buildCards(data) {
+    const cols = { todo: [], blocked: [], doing: [], review: [], done: [] };
+    const root = data.repo_root;
+    const agents = data.worktrees.filter((w) => w.state !== "hq");
+    const hq = data.worktrees.find((w) => w.state === "hq") || null;
+
+    // --- agents (git worktrees) ---
+    agents.forEach((w) => {
+      const base = { id: "agent:" + keyOf(w), kind: "agent", ref: w, title: agentTitle(w) };
+      const tags = [{ text: "agente " + agentShortId(w) }];
+      if (w.claim && w.claim.captain) tags.push({ text: "sesión " + String(w.claim.captain).slice(0, 7) });
+
+      if (w.state === "active") {
+        const since = w.locked_seconds != null ? `Arrancó ${ago(w.locked_seconds)}` : "Trabajando";
+        const touch = w.last_activity_epoch
+          ? ` · tocó <code>${esc(w.last_activity_path || "?")}</code> ${ago(Date.now() / 1000 - w.last_activity_epoch)}`
+          : " · todavía no tocó ningún archivo";
+        cols.doing.push(card(Object.assign({}, base, {
+          tone: "working",
+          line: since + touch,
+          tags: tags.concat([{ text: "trabajando", tone: "working" }]),
+          sort: -(w.locked_seconds || 0),
+        })));
+        return;
+      }
+
+      if (w.state === "stale_lock") {
+        cols.review.push(card(Object.assign({}, base, {
+          tone: "alert",
+          line: `Se colgó: el proceso <code>pid ${esc(w.dead_pid)}</code> ya no existe pero el worktree quedó trabado. Hay que mirarlo y desbloquearlo a mano.`,
+          broken: true,
+          tags: tags.concat([{ text: "colgado", tone: "alert" }]),
+          sort: -1e9,
+        })));
+        return;
+      }
+
+      if (w.state === "needs_review") {
+        const dirty = w.dirty_count ? ` y ${w.dirty_count} ${plural(w.dirty_count, "archivo sin commitear", "archivos sin commitear")}` : "";
+        cols.review.push(card(Object.assign({}, base, {
+          tone: "warn",
+          line: `Terminó y dejó <b>${w.ahead}</b> ${plural(w.ahead, "commit", "commits")} sin mergear a main${dirty}. Falta revisarlo y mergearlo.`,
+          tags: tags.concat([{ text: w.ahead + " sin mergear", tone: "warn" }]),
+          sort: -(w.ahead || 0),
+        })));
+        return;
+      }
+
+      cols.done.push(card(Object.assign({}, base, {   // idle
+        tone: "idle",
+        muted: true,
+        line: "Worktree sin nada pendiente — se puede limpiar con <code>git worktree remove</code>.",
+        tags: tags.concat([{ text: "sin pendientes" }]),
+        sort: -1,
+      })));
+    });
+
+    // --- the main checkout's own uncommitted work ---
+    const dirty = data.git_status || [];
+    if (dirty.length) {
+      cols.doing.push(card({
+        id: "hq:dirty",
+        kind: "hq",
+        ref: hq,
+        tone: "working",
+        title: `${dirty.length} ${plural(dirty.length, "archivo tocado", "archivos tocados")} sin commitear`,
+        line: `En el checkout principal — trabajo en vuelo de esta sesión o de otra ventana abierta sobre el mismo directorio.`,
+        tags: [{ text: "checkout principal" }, { text: "sin commitear", tone: "working" }],
+        sort: -5,
+      }));
+    }
+
+    // --- kanban items ---
+    ((data.kanban && data.kanban.sections) || []).forEach((sec) => {
+      if (sec.column === "reference") return;             // links, not work
+      (sec.items || []).forEach((item, i) => {
+        const wanted = item.done ? "done" : sec.column;
+        const col = cols[wanted] ? wanted : "todo";
+        const tags = [{ text: sec.heading.replace(/\s*\([^)]*\)\s*$/, "") }];
+        if (item.order != null) tags.unshift({ text: "#" + item.order, tone: "rank" });
+        if (item.date) tags.push({ text: item.date });
+        if (col === "blocked" && /human|decis|necesit/i.test(sec.heading)) {
+          tags.push({ text: "te necesita a vos", tone: "alert" });
+        }
+        cols[col].push(card({
+          id: `kanban:${sec.heading}:${i}`,
+          kind: "kanban",
+          ref: { section: sec.heading, item: item },
+          tone: item.done ? "good" : (col === "blocked" ? "alert" : (col === "doing" ? "working" : "idle")),
+          muted: item.done,
+          title: plain(item.title || item.body).slice(0, 120),
+          line: item.title ? md(item.body) : (item.sub.length ? md(item.sub[0]) : ""),
+          tags: tags,
+          sort: item.order != null ? item.order : 50 + i,
+        }));
+      });
+    });
+
+    // --- recently closed: finished agents + commits on main ---
+    (data.history || []).forEach((h, i) => {
+      const t = epochOf(h.logged_at);
+      cols.done.push(card({
+        id: "hist:" + i + ":" + (h.branch || h.path || ""),
+        kind: "history",
+        ref: h,
+        tone: "good",
+        muted: true,
+        title: "Un agente cerró su worktree",
+        line: `<code>${esc((h.branch || "").replace(/^worktree-/, ""))}</code> desapareció del disco ${t ? ago(Date.now() / 1000 - t) : ""} (estado final: ${esc(h.final_state || "?")}).`,
+        tags: [{ text: "cerrado" }],
+        sort: 1000 - t,
+      }));
+    });
+
+    (data.recent_commits || []).forEach((c, i) => {
+      cols.done.push(card({
+        id: "commit:" + c.sha,
+        kind: "commit",
+        ref: c,
+        tone: "good",
+        title: c.subject,
+        line: `Commit en <code>main</code> · ${esc(c.author || "")} · ${esc(c.relative || "")}`,
+        tags: [{ text: c.sha }],
+        sort: 2000 + i,
+      }));
+    });
+
+    Object.keys(cols).forEach((k) => cols[k].sort((a, b) => a.sort - b.sort));
+    return cols;
+  }
+
+  // ---------- rendering ----------------------------------------------------
+  let cardIndex = {};   // cardId -> card object, for the drawer
+
+  function cardHtml(c) {
+    const tags = c.tags.map((t) => `<span class="tag${t.tone ? " g-" + t.tone : ""}">${esc(t.text)}</span>`).join("");
+    return `<button type="button" class="card t-${c.tone}${c.broken ? " is-broken" : ""}${c.muted ? " is-muted" : ""}${state.selected === c.id ? " is-selected" : ""}" data-card="${esc(c.id)}">
+      <span class="card-head"><span class="card-dot" aria-hidden="true"></span><span class="card-title">${esc(c.title)}</span></span>
+      ${c.line ? `<span class="card-line">${c.line}</span>` : ""}
+      ${tags ? `<span class="card-tags">${tags}</span>` : ""}
+    </button>`;
+  }
+
+  const EMPTY_COPY = {
+    todo: "Nada en la cola.",
+    blocked: "Nada trabado.",
+    doing: "Nadie está trabajando ahora mismo.",
+    review: "Nada esperando revisión.",
+    done: "Todavía sin actividad reciente.",
+  };
+
+  function renderBoard(data) {
+    const cols = buildCards(data);
+    cardIndex = {};
+    Object.keys(cols).forEach((k) => cols[k].forEach((c) => { cardIndex[c.id] = c; }));
+
+    const board = $("board");
+    // Preserve each column's scroll position across the 5s re-render.
+    const scroll = {};
+    board.querySelectorAll(".col-body").forEach((el) => { scroll[el.dataset.col] = el.scrollTop; });
+
+    board.innerHTML = COLUMNS.map((col) => {
+      const list = cols[col.id] || [];
+      const body = list.length
+        ? list.map(cardHtml).join("")
+        : `<p class="empty">${esc(EMPTY_COPY[col.id])}</p>`;
+      return `<section class="col col-${col.id}">
+        <header class="col-head">
+          <span class="col-title">${esc(col.title)}</span>
+          <span class="col-count">${list.length}</span>
+          <span class="col-hint">${esc(col.hint)}</span>
+        </header>
+        <div class="col-body" data-col="${col.id}">${body}</div>
+      </section>`;
+    }).join("");
+
+    board.querySelectorAll(".col-body").forEach((el) => {
+      if (scroll[el.dataset.col]) el.scrollTop = scroll[el.dataset.col];
+    });
+    board.querySelectorAll(".card").forEach((el) => {
+      el.addEventListener("click", () => openDrawer(el.dataset.card));
+      const c = cardIndex[el.dataset.card];
+      if (c && c.kind === "agent" && state.flashKeys.has(keyOf(c.ref))) el.classList.add("flash");
+    });
+    return cols;
+  }
+
+  function renderTopbar(data, cols) {
+    $("projectName").textContent = data.project_name || "—";
+
+    const agents = data.worktrees.filter((w) => w.state !== "hq");
+    const working = agents.filter((w) => w.state === "active").length;
+    const stale = agents.filter((w) => w.state === "stale_lock").length;
+    const sessions = (data.captains && data.captains.active_count) || 0;
+
+    const pulse = $("pulse");
+    pulse.innerHTML = agents.map((w) => {
+      const label = `${agentShortId(w)} — ${STATE_WORD[w.state] || w.state}`;
+      return `<button type="button" class="s-${w.state}" data-key="agent:${esc(keyOf(w))}" title="${esc(label)}" aria-label="${esc(label)}"></button>`;
+    }).join("");
+    pulse.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => openDrawer(b.dataset.key)));
+
+    const stats = [
+      { n: sessions, text: plural(sessions, "sesión", "sesiones"), tone: sessions ? "working" : "" },
+      { n: working, text: plural(working, "agente activo", "agentes activos"), tone: working ? "working" : "" },
+      { n: cols.review.length, text: "para revisar", tone: cols.review.length ? (stale ? "alert" : "warn") : "good", optional: true },
+      { n: cols.todo.length, text: "en la cola", tone: "", optional: true },
+      { n: cols.blocked.length, text: plural(cols.blocked.length, "trabada", "trabadas"), tone: cols.blocked.length ? "alert" : "", optional: true },
+    ];
+    $("hud").innerHTML = stats.map((s) =>
+      `<span class="stat${s.tone ? " t-" + s.tone : ""}${s.optional ? " optional" : ""}"><b>${s.n}</b>${esc(s.text)}</span>`
+    ).join("");
+  }
+
+  function renderSummary(data, cols) {
+    const agents = data.worktrees.filter((w) => w.state !== "hq");
+    const working = agents.filter((w) => w.state === "active").length;
+    const stale = agents.filter((w) => w.state === "stale_lock").length;
+    const review = cols.review.length;
+    const dirty = (data.git_status || []).length;
+
+    const parts = [];
+    parts.push(working
+      ? `<b>${working}</b> ${plural(working, "agente está trabajando", "agentes están trabajando")} ahora mismo.`
+      : "Ningún agente está trabajando ahora mismo.");
+    if (review) parts.push(`<b>${review}</b> ${plural(review, "cosa espera", "cosas esperan")} tu revisión.`);
+    if (dirty) parts.push(`Hay <b>${dirty}</b> ${plural(dirty, "archivo sin commitear", "archivos sin commitear")} en el checkout principal.`);
+    parts.push(`<b>${cols.todo.length}</b> en la cola, <b>${cols.blocked.length}</b> ${plural(cols.blocked.length, "trabada", "trabadas")}.`);
+
+    const tone = stale ? "alert" : (review ? "warn" : (working ? "working" : "good"));
+    const el = $("summary");
+    el.className = "summary t-" + tone;
+    $("summaryText").innerHTML = parts.join(" ");
+
+    const old = el.querySelector(".summary-alarm");
+    if (old) old.remove();
+    if (stale) {
+      const alarm = document.createElement("span");
+      alarm.className = "summary-alarm";
+      alarm.textContent = `⛔ ${stale} ${plural(stale, "agente colgado", "agentes colgados")}`;
+      el.appendChild(alarm);
+    }
+  }
+
+  function renderStatusbar(data) {
+    $("sbRepo").textContent = data.repo_root;
+    $("sbMeta").textContent = `${data.hostname || ""} · panel activo ${dur(data.dashboard_uptime_s)} · datos ${data.generated_at}`;
+  }
+
+  // ---------- drawer -------------------------------------------------------
+  function kv(rows) {
+    const body = rows.filter((r) => r[1]).map((r) => `<dt>${esc(r[0])}</dt><dd>${r[2] ? r[1] : esc(r[1])}</dd>`).join("");
+    return body ? `<dl class="kv">${body}</dl>` : "";
+  }
+
+  function drawerContentFor(c, data) {
+    if (c.kind === "agent") {
+      const w = c.ref;
+      let html = kv([
+        ["estado", STATE_WORD[w.state] || w.state],
+        ["rama", w.branch || "(detached)"],
+        ["commit", `${esc(w.head_short)} — ${esc(w.commit_subject || "")}`, true],
+        ["último", w.commit_relative],
+        ["adelante", w.ahead != null ? `${w.ahead} commit(s) sin mergear a main` : ""],
+        ["atrás", w.behind != null ? `${w.behind} commit(s) detrás de main` : ""],
+        ["sin commitear", w.dirty_count != null ? `${w.dirty_count} archivo(s)` : ""],
+        ["trabado desde", w.locked_since ? `${w.locked_since} (${ago(w.locked_seconds)})` : ""],
+        ["carpeta", shortPath(w.path, data.repo_root)],
+      ]);
+      if (w.claim) {
+        html += "<h3>Lo que declaró que iba a hacer</h3>" + kv([
+          ["tarea", w.claim.task],
+          ["puede tocar", w.claim.allowed_scope],
+          ["no puede tocar", w.claim.forbidden],
+          ["sesión", w.claim.captain],
+          ["declarado", w.claim.filed],
+        ]);
+      } else {
+        html += `<h3>Claim</h3><p class="note">Este agente no dejó ningún claim en
+          <code>.agent-state/claims/</code>, así que el panel no sabe qué le pidieron.
+          No lo inventa.</p>`;
+      }
+      html += `<h3>Detalle de git</h3><div id="drawerGit"><p class="note">cargando…</p></div>`;
+      return html;
+    }
+
+    if (c.kind === "hq") {
+      const rows = (data.git_status || []).map((l) => `<li>${esc(l)}</li>`).join("");
+      return `<p>Archivos tocados en el checkout principal que todavía no están en
+        ningún commit. Puede ser trabajo tuyo en vuelo o de otra ventana de Claude
+        Code abierta sobre el mismo directorio.</p>
+        <h3>git status</h3><ul class="rawlist">${rows}</ul>`;
+    }
+
+    if (c.kind === "kanban") {
+      const item = c.ref.item;
+      const subs = item.sub.length
+        ? `<h3>Sub-ítems</h3><ul>${item.sub.map((s) => `<li>${md(s)}</li>`).join("")}</ul>` : "";
+      return `<p>${md(item.body || item.raw)}</p>${subs}
+        <h3>De dónde sale</h3>
+        <p class="note">Sección “${esc(c.ref.section)}” de <code>docs/KANBAN.md</code>.
+        Ese archivo es el tracker: se edita a mano y este panel solo lo lee.</p>`;
+    }
+
+    if (c.kind === "commit") {
+      const cm = c.ref;
+      return kv([
+        ["sha", cm.sha],
+        ["autor", cm.author],
+        ["cuándo", `${cm.relative} (${cm.date})`],
+      ]) + `<h3>Mensaje</h3><p>${md(cm.subject)}</p>`;
+    }
+
+    if (c.kind === "history") {
+      const h = c.ref;
+      return kv([
+        ["rama", h.branch],
+        ["visto primero", h.first_seen],
+        ["visto último", h.last_seen],
+        ["estado final", h.final_state],
+      ]) + `<p class="note">Registrado en <code>.claude/dashboard/history.jsonl</code>
+        cuando el worktree desapareció entre dos consultas.</p>`;
+    }
+
+    return "";
+  }
+
+  // Signature of everything the drawer renders, so a 5s poll that changed
+  // nothing about this card leaves the open drawer completely alone — no
+  // re-render, no scroll jump, no re-run of the slide-in animation.
+  function cardSig(c) {
+    return JSON.stringify([c.kind, c.title, c.line, c.tags.map((t) => t.text)]);
+  }
+
+  function openDrawer(cardId) {
+    const c = cardIndex[cardId];
+    if (!c || !state.data) return;
+    state.selected = cardId;
+    const data = state.data;
+
+    const sig = cardSig(c);
+    const existing = $("drawer");
+    if (existing && state.drawerSig === sig) return;   // nothing changed
+    if (existing && state.drawerId === cardId) delete state.detailCache[cardId]; // stale git detail
+    const keepScroll = existing ? (existing.querySelector(".drawer-body") || {}).scrollTop : 0;
+    state.drawerSig = sig;
+    state.drawerId = cardId;
+
+    let scrim = $("scrim");
+    if (!scrim) {
+      scrim = document.createElement("div");
+      scrim.className = "scrim";
+      scrim.id = "scrim";
+      scrim.addEventListener("click", closeDrawer);
+      document.body.appendChild(scrim);
+    }
+
+    let drawer = $("drawer");
+    if (!drawer) {
+      drawer = document.createElement("aside");
+      drawer.className = "drawer";
+      drawer.id = "drawer";
+      drawer.setAttribute("role", "dialog");
+      drawer.setAttribute("aria-label", "Detalle");
+      document.body.appendChild(drawer);
+    }
+
+    const subtitle = c.kind === "agent"
+      ? `agente ${agentShortId(c.ref)} · ${STATE_WORD[c.ref.state] || c.ref.state}`
+      : c.kind === "kanban" ? c.ref.section
+      : c.kind === "commit" ? "commit en main"
+      : c.kind === "history" ? "worktree cerrado"
+      : "checkout principal";
+
+    drawer.innerHTML = `
+      <div class="drawer-head">
+        <div class="drawer-head-main">
+          <div class="drawer-title">${esc(c.title)}</div>
+          <div class="drawer-sub">${esc(subtitle)}</div>
+        </div>
+        <button type="button" class="drawer-close" id="drawerClose" aria-label="Cerrar">×</button>
+      </div>
+      <div class="drawer-body">${drawerContentFor(c, data)}</div>`;
+    $("drawerClose").addEventListener("click", closeDrawer);
+    if (keepScroll) drawer.querySelector(".drawer-body").scrollTop = keepScroll;
+
+    if (c.kind === "agent") loadGitDetail(c);
+    document.querySelectorAll(".card").forEach((el) => {
+      el.classList.toggle("is-selected", el.dataset.card === cardId);
+    });
+  }
+
+  function closeDrawer() {
+    state.selected = null;
+    state.drawerSig = null;
+    state.drawerId = null;
+    const d = $("drawer"); if (d) d.remove();
+    const s = $("scrim"); if (s) s.remove();
+    document.querySelectorAll(".card.is-selected").forEach((el) => el.classList.remove("is-selected"));
+  }
+
+  async function loadGitDetail(c) {
+    const target = $("drawerGit");
+    if (!target) return;
+    const cached = state.detailCache[c.id];
+    if (cached) { target.innerHTML = renderGitDetail(cached); return; }
+    try {
+      const res = await fetch(`/api/worktree-detail?path=${encodeURIComponent(c.ref.path)}`, { cache: "no-store" });
+      const payload = await res.json();
+      if (payload.error) throw new Error(payload.error);
+      state.detailCache[c.id] = payload;
+      if (state.selected === c.id) target.innerHTML = renderGitDetail(payload);
+    } catch (e) {
+      if (state.selected === c.id) target.innerHTML = `<p class="note">No se pudo leer el detalle: ${esc(e.message)}</p>`;
+    }
+  }
+
+  function renderGitDetail(d) {
+    const log = (d.log || []).length
+      ? `<div class="rawblock">${esc(d.log.join("\n"))}</div>`
+      : `<p class="note">Sin commits propios.</p>`;
+    const st = (d.status || []).length
+      ? `<ul class="rawlist">${d.status.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>`
+      : `<p class="note">Working tree limpio.</p>`;
+    return `<p class="note">git log -20</p>${log}<h3>git status</h3>${st}`;
+  }
+
+  // ---------- change detection: flash + sound ------------------------------
+  function snapshot(agents) {
+    const m = new Map();
+    agents.forEach((w) => m.set(keyOf(w), {
+      state: w.state, ahead: w.ahead || 0, dirty: w.dirty_count || 0,
+    }));
+    return m;
+  }
+
+  function diff(prev, agents) {
+    const flash = new Set();
+    const events = [];
+    agents.forEach((w) => {
+      const key = keyOf(w);
+      const before = prev.get(key);
+      if (!before) { flash.add(key); events.push({ type: "appeared", w }); return; }
+      if (before.state !== w.state || before.ahead !== (w.ahead || 0) || before.dirty !== (w.dirty_count || 0)) {
+        flash.add(key);
+      }
+      if (before.state === "active" && (w.state === "idle" || w.state === "needs_review")) {
+        events.push({ type: "finished", w });
+      } else if (w.state === "stale_lock" && before.state !== "stale_lock") {
+        events.push({ type: "died", w });
+      }
+    });
+    return { flash: flash, events: events };
+  }
+
+  // Short WebAudio tones — never audio files, never ambient, and never on the
+  // first render (that would fire a burst of cues for pre-existing state).
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) {
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!Ctor) return null;
+      try { audioCtx = new Ctor(); } catch (e) { audioCtx = null; }
+    } else if (audioCtx.state === "suspended") {
+      audioCtx.resume().catch(() => {});
+    }
+    return audioCtx;
+  }
+  function chime(notes, wave) {
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    notes.forEach((n) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = wave || "sine";
+      osc.frequency.value = n.freq;
+      gain.gain.value = 0;
+      osc.connect(gain); gain.connect(ctx.destination);
+      const start = ctx.currentTime + (n.at || 0), d = n.dur || 0.2;
+      gain.gain.linearRampToValueAtTime(0.12, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + d);
+      osc.start(start); osc.stop(start + d + 0.02);
+    });
+  }
+  const CUES = {
+    finished: () => chime([{ freq: 523.25, dur: 0.16 }, { freq: 659.25, at: 0.09, dur: 0.22 }], "sine"),
+    died: () => chime([{ freq: 220, dur: 0.28 }, { freq: 174.6, at: 0.14, dur: 0.34 }], "triangle"),
+    appeared: () => chime([{ freq: 392, dur: 0.14 }], "sine"),
+  };
+  const NOTIFY = {
+    finished: (w) => ["Un agente terminó", `${agentShortId(w)} pasó a ${STATE_WORD[w.state] || w.state}.`],
+    died: (w) => ["Agente colgado", `${agentShortId(w)} dejó el worktree trabado sin proceso vivo.`],
+    appeared: (w) => ["Agente nuevo", `${agentShortId(w)} acaba de aparecer.`],
+  };
+  function fireCues(events) {
+    if (!state.alertsEnabled || !events.length) return;
+    const fired = new Set();
+    events.forEach((ev) => {
+      if (fired.has(ev.type)) return;
+      fired.add(ev.type);
+      if (CUES[ev.type]) CUES[ev.type]();
+    });
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    events.forEach((ev) => {
+      const copy = NOTIFY[ev.type];
+      if (!copy) return;
+      const pair = copy(ev.w);
+      try { new Notification(pair[0], { body: pair[1], tag: "websiteos-" + ev.type + "-" + keyOf(ev.w) }); } catch (e) { /* ignore */ }
+    });
+  }
+
+  function setAlerts(on) {
+    state.alertsEnabled = on;
+    try { localStorage.setItem("websiteos.alerts", on ? "1" : "0"); } catch (e) { /* ignore */ }
+    const btn = $("alertsToggle");
+    btn.textContent = on ? "🔔 alertas" : "🔕 alertas";
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    if (on) {
+      ensureAudio();
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
+    }
+  }
+
+  // ---------- tab title + favicon (the panel usually sits in a bg tab) -----
+  const HUE = { stale_lock: "#6D28D9", needs_review: "#A96A05", active: "#1B6FCC", none: "#1B7A49" };
+  let favCanvas = null;
+  function drawFavicon(hex) {
+    if (!favCanvas) favCanvas = document.createElement("canvas");
+    favCanvas.width = favCanvas.height = 32;
+    const ctx = favCanvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, 32, 32);
+    ctx.fillStyle = hex;
+    ctx.beginPath(); ctx.arc(16, 16, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 16px 'Roboto Mono', monospace";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("W", 16, 17);
+    const link = $("faviconLink");
+    if (link) link.href = favCanvas.toDataURL("image/png");
+  }
+  function updateTitle(data, cols) {
+    const agents = data.worktrees.filter((w) => w.state !== "hq");
+    const project = data.project_name || "";
+    const stale = agents.filter((w) => w.state === "stale_lock").length;
+    const working = agents.filter((w) => w.state === "active").length;
+    const review = cols.review.length;
+    let worst = "none", title = `WebsiteOS · ${project}`;
+    if (stale) { worst = "stale_lock"; title = `⛔ ${stale} colgado${stale === 1 ? "" : "s"} · ${project}`; }
+    else if (review) { worst = "needs_review"; title = `⚑ ${review} para revisar · ${project}`; }
+    else if (working) { worst = "active"; title = `▶ ${working} trabajando · ${project}`; }
+    document.title = title;
+    drawFavicon(HUE[worst]);
+  }
+
+  // ---------- poll loop ----------------------------------------------------
+  function render(data) {
+    state.data = data;
+    const cols = renderBoard(data);
+    renderTopbar(data, cols);
+    renderSummary(data, cols);
+    renderStatusbar(data);
+    updateTitle(data, cols);
+    if (state.selected) {
+      if (cardIndex[state.selected]) openDrawer(state.selected);
+      else closeDrawer();
+    }
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch("/api/status", { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      const agents = data.worktrees.filter((w) => w.state !== "hq");
+      const first = state.prevByKey === null;
+      const d = first ? { flash: new Set(), events: [] } : diff(state.prevByKey, agents);
+      state.flashKeys = d.flash;
+      render(data);
+      if (!first) fireCues(d.events);
+      state.prevByKey = snapshot(agents);
+      state.lastFetchAt = Date.now();
+      state.connected = true;
+    } catch (e) {
+      state.connected = false;
+      const f = $("freshness");
+      f.textContent = "sin conexión al panel";
+      f.classList.add("stale");
+    }
+  }
+
+  function tickFreshness() {
+    if (!state.connected || state.lastFetchAt == null) return;
+    const secs = Math.round((Date.now() - state.lastFetchAt) / 1000);
+    const f = $("freshness");
+    f.textContent = secs < 2 ? "en vivo" : `hace ${secs} s`;
+    f.classList.toggle("stale", secs > 20);
+  }
+
+  // ---------- wiring -------------------------------------------------------
+  setAlerts(state.alertsEnabled);
+  $("alertsToggle").addEventListener("click", () => setAlerts(!state.alertsEnabled));
+
+  const help = $("helpPop"), helpBtn = $("helpToggle");
+  helpBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = help.hasAttribute("hidden");
+    if (open) help.removeAttribute("hidden"); else help.setAttribute("hidden", "");
+    helpBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  document.addEventListener("click", (e) => {
+    if (!help.hasAttribute("hidden") && !help.contains(e.target) && e.target !== helpBtn) {
+      help.setAttribute("hidden", "");
+      helpBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if ($("drawer")) closeDrawer();
+    else if (!help.hasAttribute("hidden")) {
+      help.setAttribute("hidden", "");
+      helpBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  poll();
+  setInterval(poll, POLL_MS);
+  setInterval(tickFreshness, 1000);
+})();
+</script>

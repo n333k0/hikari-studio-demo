@@ -2,5 +2,7 @@
 *.log
 .agent-state/
 .claude/worktrees/
+.claude/dashboard/history.jsonl
+.claude/dashboard/__pycache__/
 scripts/screenshot/node_modules/
 scripts/screenshot/package-lock.json

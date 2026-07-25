@@ -20,6 +20,30 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — The ops panel is WebsiteOS, one screen, and speaks plain language
+- Context: the dashboard was a long vertical page ("General y sus Soldados")
+  whose metaphor-heavy copy (capitanes, soldados, cuartel general) and
+  seven stacked sections meant you had to scroll and decode to answer "what is
+  happening right now". The user asked for a name that generalises to other
+  projects and for a board that's readable at a glance.
+- Lesson: an ops panel earns its keep only if the whole state fits one viewport.
+  The fix wasn't styling — it was picking a single organising model (a kanban of
+  *work states*) and forcing every data source through it: agents, uncommitted
+  changes, `docs/KANBAN.md` items, finished worktrees and recent commits are all
+  just cards in `Por hacer / Trabado / En curso / Para revisar / Listo`. Anything
+  that would add page height went into a slide-over drawer instead.
+- Apply: the panel name is **WebsiteOS**, and the project half of the title is
+  *derived* (`detect_project_name()` → `$WEBSITEOS_PROJECT` → `project-name.txt`
+  → de-noised repo dirname), never hardcoded — that's what makes it droppable
+  into the next project. Kanban headings map to columns by keyword
+  (`classify_kanban_section()`), so a new section lands somewhere sensible
+  without a code change; `Cross-references`-style sections are excluded from the
+  board on purpose. If you rename the panel again, update the `SessionStart`
+  probe in `scripts/session-start-summary.sh` — it greps the served HTML for the
+  panel's own name to avoid announcing somebody else's localhost server.
+- Refs: `.claude/dashboard/index.html`, `.claude/dashboard/server.py`,
+  `scripts/session-start-summary.sh`, `docs/KANBAN.md` → "How the board reads this file".
+
 ### 2026-07-25 — Web AR anchors bbox-min-Y to the floor; a pendant must carry its own drop
 - Context: "Ver en tu espacio" on the Ensui D70 put the lamp on the floor in the
   middle of the room with its cord standing up in the air. The model was built

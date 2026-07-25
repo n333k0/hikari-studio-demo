@@ -8,6 +8,28 @@ keep it short and honest; no aspirational content.
 Update this file in the same turn work state changes (item started, blocked,
 cleared, done) — same rule as `docs/site-structure.md`.
 
+## How the board reads this file
+The WebsiteOS panel (`.claude/dashboard/serve.sh`) renders every top-level list
+item below as a card, and picks its column from the **section heading's
+keywords** (`classify_kanban_section()` in `server.py`) — not from a fixed list
+of headings, so a new section still lands somewhere sensible:
+
+| Heading contains | Column |
+|---|---|
+| `block` / `bloque` / `waiting` / `espera` / `on hold` | Trabado |
+| `human` / `decis` / `necesita` / `manual` / `input` | Trabado, tagged "te necesita a vos" |
+| `progress` / `curso` / `doing` / `wip` | En curso |
+| `done` / `listo` / `hecho` / `complet` / `cerrad` | Listo |
+| `cross-ref` / `referenc` / `links` | **excluded** — links, not work |
+| anything else | Por hacer |
+
+Two formatting habits the board relies on, both of which this file already
+follows: start an item with `**A short title.**` (that bold lead becomes the
+card's headline, the rest becomes the body), and mark finished items with
+`~~strikethrough~~` (those move to Listo instead of being deleted). Numbered
+items keep their number as a `#N` priority chip. Nothing here is required —
+an unformatted bullet still renders, just with less structure.
+
 ## Blocked on validation
 
 **Top priority — nothing below can mass-scale until this clears.**

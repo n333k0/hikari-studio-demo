@@ -9,7 +9,7 @@
 #   5. ready-to-review links: one per section with finished work, collapsed
 #      ("+N more") for sections with several pages of the same type — never
 #      an exhaustive per-page list.
-#   6. the dashboard ("General y sus Soldados"): its live localhost URL when
+#   6. the dashboard (WebsiteOS): its live localhost URL when
 #      the server is already up, otherwise the command to start it. It's part
 #      of the system, so it belongs in the opening status next to the site
 #      links, not something the user has to remember exists.
@@ -173,7 +173,7 @@ else
 fi
 echo
 
-echo "--- Dashboard: \"General y sus Soldados\" (local panel: worktrees, agent claims, kanban) ---"
+echo "--- Dashboard: WebsiteOS (local board: worktrees, agent claims, kanban) ---"
 # Probe the port range server.py actually walks (DEFAULT_PORT 8765, +9). Check
 # the socket first with bash /dev/tcp - instant on a closed local port - and
 # only spend a curl on ports that are genuinely open, so a hung service on one
@@ -184,7 +184,7 @@ if [ -x .claude/dashboard/serve.sh ]; then
   dash_url=""
   for p in $(seq 8765 8774); do
     port_open "$p" || continue
-    if curl -fsS -m 2 "http://localhost:$p/" 2>/dev/null | grep -q "Soldados"; then
+    if curl -fsS -m 2 "http://localhost:$p/" 2>/dev/null | grep -q "WebsiteOS"; then
       dash_url="http://localhost:$p/"
       break
     fi
