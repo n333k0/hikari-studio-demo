@@ -455,10 +455,16 @@
     <dt><span class="swatch" style="background:var(--good)"></span> Listo</dt>
     <dd>Commits recientes en <code>main</code> y agentes que ya cerraron.</dd>
   </dl>
-  <p><b>Lo que este panel NO puede ver:</b> una sesión de Claude Code abierta que
-     todavía no despachó nada y no escribió su heartbeat en
-     <code>.agent-state/captains/*.md</code> es invisible acá. No existe forma de
-     detectar "toda ventana de chat abierta"; solo actividad que deja huella en
+  <p><b>Sesiones y agentes no son lo mismo.</b> Una <b>sesión</b> es una ventana de
+     Claude Code; se cuenta porque un hook <code>PostToolUse</code> le refresca el
+     heartbeat en <code>.agent-state/captains/</code> con cada herramienta que usa,
+     y se apaga sola a los 20 min de quedarse quieta. Un <b>agente</b> es un worker
+     despachado a su propio git worktree bloqueado. <b>0 agentes no significa que
+     nadie esté trabajando</b> — mirá el conteo de sesiones y la columna En curso.</p>
+  <p><b>Lo que este panel NO puede ver:</b> una sesión que se abrió <i>antes</i> de
+     que existiera el hook (los hooks se cargan al arrancar la sesión) no aparece
+     hasta que se reinicia, y una que no tocó nada en 20 min tampoco. No existe API
+     para "listar ventanas de chat abiertas"; solo se cuenta lo que deja huella en
      el disco.</p>
   <p class="note">Clic en cualquier tarjeta para ver el detalle crudo (git log,
      git status, el claim del agente). Esc cierra.</p>
@@ -788,10 +794,12 @@
     const stats = [
       // "0 sesiones" reads as a lie when you're obviously sitting in one, so
       // when nothing has a heartbeat the pill says what it actually measured.
-      { n: sessions, text: sessions ? plural(sessions, "sesión", "sesiones") : "sesiones con señal",
+      { n: sessions, text: plural(sessions, "sesión", "sesiones"),
         tone: sessions ? "working" : "",
-        title: "Solo cuenta sesiones que escribieron su heartbeat en .agent-state/captains/. Una ventana abierta que nunca lo escribió no deja rastro y no se puede contar." },
-      { n: working, text: plural(working, "agente activo", "agentes activos"), tone: working ? "working" : "" },
+        title: "Ventanas de Claude Code que tocaron algo en los últimos 20 min (heartbeat en .agent-state/captains/, refrescado por el hook PostToolUse). Una sesión totalmente quieta se apaga sola de esta cuenta." },
+      { n: working, text: plural(working, "agente despachado", "agentes despachados"),
+        tone: working ? "working" : "",
+        title: "Agentes en su propio git worktree bloqueado. Es una población distinta de las sesiones: 0 acá no significa que nadie esté trabajando." },
       { n: cols.review.length, text: "para revisar", tone: cols.review.length ? (stale ? "alert" : "warn") : "good", optional: true },
       { n: cols.todo.length, text: "en la cola", tone: "", optional: true },
       { n: cols.blocked.length, text: plural(cols.blocked.length, "trabada", "trabadas"), tone: cols.blocked.length ? "alert" : "", optional: true },
@@ -805,18 +813,39 @@
     const agents = data.worktrees.filter((w) => w.state !== "hq");
     const working = agents.filter((w) => w.state === "active").length;
     const stale = agents.filter((w) => w.state === "stale_lock").length;
+    const sessions = (data.captains && data.captains.active_count) || 0;
     const review = cols.review.length;
-    const dirty = (data.git_status || []).length;
+    const dirty = data.git_status || [];
+    const newest = dirty.find((f) => f.mtime);
+    const editSecs = newest ? Date.now() / 1000 - newest.mtime : null;
 
+    // "Ningún agente está trabajando" used to be the opener, and it read as
+    // "nadie está trabajando" — wrong, and the complaint that produced this
+    // code. Sessions (chat windows) and agents (dispatched worktrees) are
+    // different populations, so the sentence names both, and then leads with
+    // the hardest evidence there is: a file changing on disk right now.
     const parts = [];
-    parts.push(working
-      ? `<b>${working}</b> ${plural(working, "agente está trabajando", "agentes están trabajando")} ahora mismo.`
-      : "Ningún agente está trabajando ahora mismo.");
-    if (review) parts.push(`<b>${review}</b> ${plural(review, "cosa espera", "cosas esperan")} tu revisión.`);
-    if (dirty) parts.push(`Hay <b>${dirty}</b> ${plural(dirty, "archivo sin commitear", "archivos sin commitear")} en el checkout principal.`);
+    if (sessions && working) {
+      parts.push(`<b>${sessions}</b> ${plural(sessions, "sesión", "sesiones")} y <b>${working}</b> ${plural(working, "agente", "agentes")} trabajando.`);
+    } else if (sessions) {
+      parts.push(`<b>${sessions}</b> ${plural(sessions, "sesión abierta", "sesiones abiertas")}, sin agentes despachados.`);
+    } else if (working) {
+      parts.push(`<b>${working}</b> ${plural(working, "agente despachado", "agentes despachados")} trabajando, sin sesiones con señal.`);
+    } else {
+      parts.push("Nadie trabajando: ni sesiones con señal ni agentes despachados.");
+    }
+
+    if (editSecs != null && editSecs < 15 * 60) {
+      parts.push(`Se está editando <b>${esc(newest.path.split("/").pop())}</b> (${ago(editSecs)}).`);
+    } else if (dirty.length) {
+      parts.push(`<b>${dirty.length}</b> ${plural(dirty.length, "archivo sin commitear", "archivos sin commitear")}.`);
+    }
+
+    if (review) parts.push(`<b>${review}</b> ${plural(review, "espera", "esperan")} tu revisión.`);
     parts.push(`<b>${cols.todo.length}</b> en la cola, <b>${cols.blocked.length}</b> ${plural(cols.blocked.length, "trabada", "trabadas")}.`);
 
-    const tone = stale ? "alert" : (review ? "warn" : (working ? "working" : "good"));
+    const live = editSecs != null && editSecs < 15 * 60;
+    const tone = stale ? "alert" : (review ? "warn" : ((working || sessions || live) ? "working" : "good"));
     const el = $("summary");
     el.className = "summary t-" + tone;
     $("summaryText").innerHTML = parts.join(" ");

@@ -22,6 +22,80 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT" || exit 0
 PAGES_BASE="https://n333k0.github.io/hikari-studio-demo"
 
+# --- Find the WebsiteOS panel once, up here, because two sections need it: the
+# one-line board summary that opens the reply, and the dashboard section that
+# closes it. Probe the port range server.py walks (8765 +9). Check the socket
+# first with bash /dev/tcp - instant on a closed local port - and only spend a
+# curl on ports that are genuinely open, so a hung service can't eat the hook's
+# timeout. The grep for the panel's own name keeps us from announcing somebody
+# else's localhost server as the dashboard.
+port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") >/dev/null 2>&1; }
+DASH_URL=""
+if [ -x .claude/dashboard/serve.sh ]; then
+  for p in $(seq 8765 8774); do
+    port_open "$p" || continue
+    if curl -fsS -m 2 "http://localhost:$p/" 2>/dev/null | grep -q "WebsiteOS"; then
+      DASH_URL="http://localhost:$p/"
+      break
+    fi
+  done
+fi
+
+# --- Board summary FIRST: this is the single line the opening reply leads with,
+# so the chat and the panel can never tell different stories. Read live from the
+# panel's own API rather than recomputed here - one source of truth for the
+# counts, and no risk of the two drifting apart.
+echo "--- Board ahora (one-line summary - lead the opening reply with this) ---"
+if [ -n "$DASH_URL" ]; then
+  curl -fsS -m 3 "${DASH_URL}api/status" 2>/dev/null | python3 -c '
+import json, sys, time
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit(1)
+
+agents = [w for w in d.get("worktrees", []) if w.get("state") != "hq"]
+working = sum(1 for w in agents if w["state"] == "active")
+review  = sum(1 for w in agents if w["state"] in ("needs_review", "stale_lock"))
+stale   = sum(1 for w in agents if w["state"] == "stale_lock")
+sessions = (d.get("captains") or {}).get("active_count", 0)
+
+todo = blocked = 0
+for s in (d.get("kanban") or {}).get("sections", []):
+    if s.get("column") == "reference":
+        continue
+    for it in s.get("items", []):
+        if it.get("done"):
+            continue
+        if s.get("column") == "blocked":
+            blocked += 1
+        elif s.get("column") == "todo":
+            todo += 1
+
+dirty = d.get("git_status") or []
+newest = next((f for f in dirty if f.get("mtime")), None)
+bits = [
+    "%d sesion%s" % (sessions, "" if sessions == 1 else "es"),
+    "%d agente%s despachado%s" % (working, "" if working == 1 else "s", "" if working == 1 else "s"),
+    "%d para revisar" % review,
+    "%d en la cola" % todo,
+    "%d trabada%s" % (blocked, "" if blocked == 1 else "s"),
+    "%d sin commitear" % len(dirty),
+]
+print("Board ahora: " + " | ".join(bits))
+if newest:
+    mins = (time.time() - newest["mtime"]) / 60.0
+    when = "hace %d s" % int(mins * 60) if mins < 1 else "hace %d min" % int(mins)
+    print("Ultimo archivo tocado: %s (%s)" % (newest["path"], when))
+if stale:
+    print("ATENCION: %d agente(s) colgado(s) - worktree bloqueado sin proceso vivo." % stale)
+print("Nota: sesiones y agentes son poblaciones distintas. 0 agentes NO significa que nadie este trabajando.")
+' 2>/dev/null || echo "Panel corriendo en $DASH_URL pero no respondio /api/status - no inventes numeros, decilo asi."
+else
+  echo "Panel apagado - no hay numeros del board esta vez. Decilo asi en la primera linea, no inventes conteos."
+fi
+echo
+
 echo "--- Active git worktrees (parallel agent dispatch may be in flight - see docs/ARCHITECTURE.md sec 13) ---"
 git worktree list 2>/dev/null || echo "(git worktree list unavailable)"
 echo
@@ -173,28 +247,15 @@ else
 fi
 echo
 
-echo "--- Dashboard: WebsiteOS (local board: worktrees, agent claims, kanban) ---"
-# Probe the port range server.py actually walks (DEFAULT_PORT 8765, +9). Check
-# the socket first with bash /dev/tcp - instant on a closed local port - and
-# only spend a curl on ports that are genuinely open, so a hung service on one
-# of them can't eat the hook's timeout. The grep for the panel's own name keeps
-# us from announcing somebody else's server as the dashboard.
-port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") >/dev/null 2>&1; }
-if [ -x .claude/dashboard/serve.sh ]; then
-  dash_url=""
-  for p in $(seq 8765 8774); do
-    port_open "$p" || continue
-    if curl -fsS -m 2 "http://localhost:$p/" 2>/dev/null | grep -q "WebsiteOS"; then
-      dash_url="http://localhost:$p/"
-      break
-    fi
-  done
-  if [ -n "$dash_url" ]; then
-    echo "Running now: $dash_url"
-  else
-    echo "Not running. Start it:  .claude/dashboard/serve.sh   -> then open http://localhost:8765/"
-    echo "  (serve.sh auto-tries 8765-8774 and prints whichever port it bound.)"
-  fi
-else
+# Deliberately LAST, and under its own heading: per CLAUDE.md the dashboard gets
+# its own little section at the bottom of the opening reply, not folded into the
+# ready-to-review links. The probe itself already ran at the top of this script.
+echo "--- WebsiteOS dashboard (its own section, at the END of the opening reply) ---"
+if [ ! -x .claude/dashboard/serve.sh ]; then
   echo "(no .claude/dashboard/serve.sh in this checkout - dashboard not installed here)"
+elif [ -n "$DASH_URL" ]; then
+  echo "Running now: $DASH_URL"
+else
+  echo "Not running. Start it:  .claude/dashboard/serve.sh   -> then open http://localhost:8765/"
+  echo "  (serve.sh auto-tries 8765-8774 and prints whichever port it bound.)"
 fi

@@ -20,6 +20,30 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — "0 agentes" was read as "nadie trabajando"; count sessions, don't infer them
+- Context: the board said *"Ningún agente está trabajando ahora mismo"* and
+  *"0 sesiones con señal"* while two Claude Code windows were actively editing
+  the AR pipeline. Both statements were technically true and completely
+  misleading: "agente" meant *locked git worktree*, and the session count only
+  saw captain files someone had written by hand — the newest was 6 h stale.
+- Lesson: two failures, and only one was wording. **(a)** A status panel must
+  not report on one population (dispatched agents) in language the reader hears
+  as another (anyone working). Name both, always, and never let a zero stand
+  alone. **(b)** When a signal is missing, the fix is usually to *emit* it, not
+  to soften the copy around it. There's no API for "list open chat windows", but
+  every session runs hooks, so every session can leave a trace.
+- Apply: `scripts/session-heartbeat.sh` writes/touches
+  `.agent-state/captains/<session_id>.md`, wired to `SessionStart` (create +
+  prune >24 h) and `PostToolUse` (touch). "Active" now means "used a tool in the
+  last 20 min", which ages out a dead session by itself. It parses the hook JSON
+  with `sed`, not `python3` — it runs after *every* tool call and an interpreter
+  start-up per call is a real tax. It always exits 0; a heartbeat is never worth
+  failing a tool call over. Known gap, stated in the panel's help: hooks load at
+  session start, so a window opened before the hook existed stays uncounted
+  until it restarts.
+- Refs: `.claude/settings.json`, `scripts/session-heartbeat.sh`,
+  `.claude/dashboard/index.html` → `renderSummary()`.
+
 ### 2026-07-25 — The ops panel is WebsiteOS, one screen, and speaks plain language
 - Context: the dashboard was a long vertical page ("General y sus Soldados")
   whose metaphor-heavy copy (capitanes, soldados, cuartel general) and

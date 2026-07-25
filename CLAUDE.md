@@ -8,16 +8,29 @@
 > [`docs/brief-guide.md`](docs/brief-guide.md) for the shape of that ask, not
 > a form to fill). When the user gives new scope or direction, update
 > `docs/site-structure.md` in the same turn so the next session already knows.
-> Also fold a short **ready-to-review** list into that same opening reply —
-> one live link per distinct section that has finished work (home, one
-> example product page + "+N more" if there are several, category/blog/
-> contacto once those phases start), not an exhaustive per-page list. The
-> `SessionStart` hook below prints the raw discovered links; the reply just
-> has to render them, collapsed. Include the **dashboard** link in that same
-> list — **WebsiteOS** (`.claude/dashboard/serve.sh`) is part of
-> the system, not an extra: the hook prints its live `localhost` URL when the
-> server is already up, or the start command when it isn't. Render whichever
-> the hook reported; don't claim it's running when the hook said it isn't.
+> **Open that reply with one line that mirrors the board.** The `SessionStart`
+> hook prints a `Board ahora:` line (agentes trabajando · para revisar · en la
+> cola · trabadas · sin commitear) read live from the running WebsiteOS panel.
+> Render it as a single compact sentence *before* the per-phase status, so the
+> chat and the panel never tell different stories. If the hook says the panel
+> isn't running, say so in that line instead of inventing counts — and never
+> restate the whole board in prose; it's a one-liner, the panel is where you
+> look at the detail.
+>
+> Then the per-phase status ("vista gorda"), then a short
+> **ready-to-review** list — one live link per distinct section that has
+> finished work (home, one example product page + "+N more" if there are
+> several, category/blog/contacto once those phases start), not an exhaustive
+> per-page list. The hook prints the raw discovered links; the reply just has
+> to render them, collapsed.
+>
+> **The dashboard goes last, under its own heading** — its own little section
+> at the very bottom of the opening reply, *not* folded into the
+> ready-to-review links. **WebsiteOS** (`.claude/dashboard/serve.sh`) is part
+> of the system, not an extra: the hook prints its live `localhost` URL when
+> the server is already up, or the start command when it isn't. Render
+> whichever the hook reported; don't claim it's running when the hook said it
+> isn't.
 >
 > **New here, or just want the plain-language "how do I keep building this"
 > guide?** Read [`docs/quick-start.md`](docs/quick-start.md) first.
