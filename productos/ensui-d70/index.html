@@ -52,14 +52,14 @@
         <div class="pdp-gallery">
           <div class="pdp-gallery__main">
             <img id="galleryMainImg" src="../../images/products/ensui-d70/1.webp" alt="Ensui D70, lámpara colgante de papel de arroz">
-            <div class="pdp-gallery__dots" id="galleryDots">
-              <button class="pdp-gallery__dot is-active" data-index="0" aria-label="Foto 1"><img src="../../images/products/ensui-d70/1.webp" alt=""></button>
-              <button class="pdp-gallery__dot" data-index="1" aria-label="Foto 2"><img src="../../images/products/ensui-d70/2.webp" alt=""></button>
-              <button class="pdp-gallery__dot" data-index="2" aria-label="Foto 3"><img src="../../images/products/ensui-d70/3.webp" alt=""></button>
-              <button class="pdp-gallery__dot" data-index="3" aria-label="Foto 4"><img src="../../images/products/ensui-d70/4.webp" alt=""></button>
-              <button class="pdp-gallery__dot" data-index="4" aria-label="Foto 5"><img src="../../images/products/ensui-d70/5.webp" alt=""></button>
-            </div>
             <div class="pdp-gallery__progress" id="galleryProgress">1 / 5</div>
+          </div>
+          <div class="pdp-gallery__dots" id="galleryDots">
+            <button class="pdp-gallery__dot is-active" data-index="0" aria-label="Foto 1"><img src="../../images/products/ensui-d70/1.webp" alt=""></button>
+            <button class="pdp-gallery__dot" data-index="1" aria-label="Foto 2"><img src="../../images/products/ensui-d70/2.webp" alt=""></button>
+            <button class="pdp-gallery__dot" data-index="2" aria-label="Foto 3"><img src="../../images/products/ensui-d70/3.webp" alt=""></button>
+            <button class="pdp-gallery__dot" data-index="3" aria-label="Foto 4"><img src="../../images/products/ensui-d70/4.webp" alt=""></button>
+            <button class="pdp-gallery__dot" data-index="4" aria-label="Foto 5"><img src="../../images/products/ensui-d70/5.webp" alt=""></button>
           </div>
         </div>
 
@@ -250,7 +250,10 @@
       <button type="button" class="pdp-sticky__icon-btn" data-modal-open="modal-envio" aria-label="Medios de envío">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18.5" r="1.6"/><circle cx="17.5" cy="18.5" r="1.6"/></svg>
       </button>
-      <button type="button" class="btn btn--primary btn--sm" data-add-to-cart>Agregar al carrito</button>
+      <button type="button" class="btn btn--primary btn--sm pdp-sticky__atc" data-add-to-cart aria-label="Agregar al carrito">
+        <svg class="pdp-sticky__atc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+        <span class="pdp-sticky__atc-label">Agregar al carrito</span>
+      </button>
     </div>
   </div>
 
@@ -430,9 +433,10 @@
       exposure="1.1"
       shadow-intensity="1.1"
       shadow-softness="0.9"
-      camera-orbit="18deg 78deg 105%"
-      min-camera-orbit="auto 40deg auto"
-      max-camera-orbit="auto 100deg auto">
+      camera-target="0m 0.13m 0m"
+      camera-orbit="18deg 78deg 0.85m"
+      min-camera-orbit="auto 40deg 0.5m"
+      max-camera-orbit="auto 100deg 3m">
       <div slot="progress-bar" class="mv-progress" id="mvProgress">
         <div class="mv-progress__track"><div class="mv-progress__bar" id="mvProgressBar"></div></div>
       </div>

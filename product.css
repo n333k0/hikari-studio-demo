@@ -45,6 +45,7 @@
   background: var(--surface-primary);
 }
 
+.pdp-gallery { position: relative; }
 .pdp-gallery__main {
   aspect-ratio: 1 / 1;
   background: var(--surface-primary-alt);
@@ -162,6 +163,7 @@
 .pdp-sticky__icon-btn svg { width: 19px; height: 19px; }
 .pdp-sticky__icon-btn--ar { background: var(--text-t1); color: #fff; }
 .pdp-sticky__icon-btn--ar:hover { background: var(--mono-800); }
+.pdp-sticky__atc-icon { display: none; width: 18px; height: 18px; }
 
 /* ---------- Section beats shared across the page ---------- */
 .pdp-section { padding-top: var(--sp-10); }
@@ -313,17 +315,35 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .pdp-top { grid-template-columns: 1fr; gap: var(--sp-4); position: static; top: auto; }
-  .pdp-gallery-scroll { height: auto !important; padding-inline: var(--gutter); }
+  .pdp-gallery-scroll { height: auto !important; padding-right: 0; }
+  .pdp-buybox { padding-inline: var(--gutter); }
   .pdp-more-photos { grid-template-columns: 1fr; }
   .pdp-sticky__name { display: none; }
   .pdp-reveal { height: auto; padding-block: var(--sp-10); }
   .pdp-reveal__sticky { position: static; height: auto; }
+
+  /* Gantri's actual mobile pattern: the photo stays full-bleed, but the
+     thumbnails move OFF the image into a normal horizontal scrollable row
+     underneath it — not an overlay (there's no room for that on a phone). */
+  .pdp-gallery__dots {
+    position: static; transform: none;
+    flex-direction: row; overflow-x: auto;
+    gap: 8px; padding: var(--sp-2) var(--gutter) 0;
+  }
+  .pdp-gallery__dot { flex: 0 0 auto; }
 }
 @media (max-width: 640px) {
   .pdp-buyrow { flex-wrap: wrap; }
   .pdp-buyrow .btn--primary { width: 100%; order: -1; }
   .modal__share-grid { grid-template-columns: repeat(3, 1fr); }
   .pdp-ar-qr { flex-direction: column; text-align: center; }
+
+  /* the sticky bar was overflowing on narrow phones with 4 icon buttons +
+     price + a full "Agregar al carrito" text pill — collapse it to a
+     matching round icon so everything actually fits. */
+  .pdp-sticky__atc { width: 44px; height: 44px; padding: 0; border-radius: 50%; flex-shrink: 0; }
+  .pdp-sticky__atc-icon { display: block; }
+  .pdp-sticky__atc-label { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
