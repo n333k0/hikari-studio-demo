@@ -179,16 +179,18 @@
   .icon-btn[aria-pressed="true"] { background: var(--working-bg); border-color: var(--working); color: var(--working); }
 
   /* ---------- summary line: the "at a glance" sentence ---------- */
+  /* The one sentence that answers "¿qué está pasando?" — sized to be read
+     from across the room, so it wins over everything else on the page. */
   .summary {
-    display: flex; align-items: center; gap: 12px;
-    padding: 9px 16px; min-height: 40px;
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 16px;
     background: var(--surface-2);
     border-bottom: 1px solid var(--line);
-    font-size: 13.5px; color: var(--ink-2);
+    font-size: 25px; line-height: 1.25; color: var(--ink-2);
   }
   .summary b { color: var(--ink); font-weight: 700; }
   .summary .lead-dot {
-    width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; background: var(--good);
+    width: 13px; height: 13px; border-radius: 50%; flex: 0 0 auto; background: var(--good);
   }
   .summary.t-working .lead-dot { background: var(--working); }
   .summary.t-warn .lead-dot { background: var(--warn); }
@@ -200,8 +202,10 @@
   .summary-alarm {
     margin-left: auto; flex: 0 0 auto;
     background: var(--alert-bg); color: var(--alert);
-    border-radius: 40px; padding: 3px 12px; font-size: 11.5px; font-weight: 600;
+    border-radius: 40px; padding: 4px 14px; font-size: 14px; font-weight: 600;
+    white-space: nowrap;
   }
+  @media (max-width: 1180px) { .summary { font-size: 20px; } }
 
   /* ---------- board ---------- */
   .board {
@@ -625,17 +629,29 @@
     });
 
     // --- the main checkout's own uncommitted work ---
+    // A foreground session (no worktree, no lock, no claim) is invisible to
+    // this panel EXCEPT through the files it touches, so this card names the
+    // newest one and how long ago — that's the "sí, alguien está trabajando"
+    // signal, not the bare file count.
     const dirty = data.git_status || [];
     if (dirty.length) {
+      const newest = dirty.find((f) => f.mtime);
+      const secs = newest ? Date.now() / 1000 - newest.mtime : null;
+      const live = secs != null && secs < 15 * 60;
       cols.doing.push(card({
         id: "hq:dirty",
         kind: "hq",
         ref: hq,
         tone: "working",
-        title: `${dirty.length} ${plural(dirty.length, "archivo tocado", "archivos tocados")} sin commitear`,
-        line: `En el checkout principal — trabajo en vuelo de esta sesión o de otra ventana abierta sobre el mismo directorio.`,
-        tags: [{ text: "checkout principal" }, { text: "sin commitear", tone: "working" }],
-        sort: -5,
+        title: live
+          ? `Alguien está editando el checkout principal`
+          : `${dirty.length} ${plural(dirty.length, "archivo tocado", "archivos tocados")} sin commitear`,
+        line: newest
+          ? `Lo último: <code>${esc(newest.path)}</code> ${ago(secs)} · ${dirty.length} ${plural(dirty.length, "archivo sin commitear", "archivos sin commitear")} en total.`
+          : `${dirty.length} ${plural(dirty.length, "archivo sin commitear", "archivos sin commitear")} en el checkout principal.`,
+        tags: [{ text: "checkout principal" }].concat(
+          live ? [{ text: "en vuelo", tone: "working" }] : [{ text: "sin commitear" }]),
+        sort: -6,
       }));
     }
 
@@ -770,14 +786,18 @@
     pulse.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => openDrawer(b.dataset.key)));
 
     const stats = [
-      { n: sessions, text: plural(sessions, "sesión", "sesiones"), tone: sessions ? "working" : "" },
+      // "0 sesiones" reads as a lie when you're obviously sitting in one, so
+      // when nothing has a heartbeat the pill says what it actually measured.
+      { n: sessions, text: sessions ? plural(sessions, "sesión", "sesiones") : "sesiones con señal",
+        tone: sessions ? "working" : "",
+        title: "Solo cuenta sesiones que escribieron su heartbeat en .agent-state/captains/. Una ventana abierta que nunca lo escribió no deja rastro y no se puede contar." },
       { n: working, text: plural(working, "agente activo", "agentes activos"), tone: working ? "working" : "" },
       { n: cols.review.length, text: "para revisar", tone: cols.review.length ? (stale ? "alert" : "warn") : "good", optional: true },
       { n: cols.todo.length, text: "en la cola", tone: "", optional: true },
       { n: cols.blocked.length, text: plural(cols.blocked.length, "trabada", "trabadas"), tone: cols.blocked.length ? "alert" : "", optional: true },
     ];
     $("hud").innerHTML = stats.map((s) =>
-      `<span class="stat${s.tone ? " t-" + s.tone : ""}${s.optional ? " optional" : ""}"><b>${s.n}</b>${esc(s.text)}</span>`
+      `<span class="stat${s.tone ? " t-" + s.tone : ""}${s.optional ? " optional" : ""}"${s.title ? ` title="${esc(s.title)}"` : ""}><b>${s.n}</b>${esc(s.text)}</span>`
     ).join("");
   }
 
@@ -854,11 +874,16 @@
     }
 
     if (c.kind === "hq") {
-      const rows = (data.git_status || []).map((l) => `<li>${esc(l)}</li>`).join("");
+      const rows = (data.git_status || []).map((f) =>
+        `<li>${esc(f.code)} ${esc(f.path)}${f.mtime ? `  —  ${ago(Date.now() / 1000 - f.mtime)}` : ""}</li>`
+      ).join("");
       return `<p>Archivos tocados en el checkout principal que todavía no están en
-        ningún commit. Puede ser trabajo tuyo en vuelo o de otra ventana de Claude
-        Code abierta sobre el mismo directorio.</p>
-        <h3>git status</h3><ul class="rawlist">${rows}</ul>`;
+        ningún commit, del más reciente al más viejo. Puede ser trabajo tuyo en
+        vuelo o de otra ventana de Claude Code abierta sobre el mismo directorio.</p>
+        <p class="note">Una sesión en primer plano no crea worktree ni deja claim:
+        esto es lo único por lo que el panel puede saber que está trabajando. Cuando
+        commitea, el trabajo se mueve solo a “Listo”.</p>
+        <h3>git status (por antigüedad)</h3><ul class="rawlist">${rows}</ul>`;
     }
 
     if (c.kind === "kanban") {

@@ -108,8 +108,15 @@ def detect_project_name(repo_root):
 # git plumbing
 # ---------------------------------------------------------------------------
 
-def run_git(cwd, args):
-    """Run `git -C cwd <args>`, return (stdout_stripped, returncode)."""
+def run_git(cwd, args, strip=True):
+    """Run `git -C cwd <args>`, return (stdout, returncode).
+
+    `strip=False` matters for column-oriented output: `git status --short`
+    encodes the index/worktree state in the first two characters, and an
+    unstaged change starts with a SPACE (" M path"). Stripping the whole
+    output eats that space on the FIRST line only, which silently shifts that
+    one line's parse by a character — it turned ".claude/x" into "claude/x".
+    Anything that reads by position must pass strip=False."""
     try:
         result = subprocess.run(
             ["git", "-C", cwd] + args,
@@ -117,7 +124,8 @@ def run_git(cwd, args):
             text=True,
             timeout=GIT_TIMEOUT_SECS,
         )
-        return result.stdout.strip(), result.returncode
+        out = result.stdout.strip() if strip else result.stdout.rstrip("\n")
+        return out, result.returncode
     except Exception as exc:  # noqa: BLE001 - surface any failure as empty/1
         return "", 1
 
@@ -736,8 +744,24 @@ def build_status():
             "author": bits[4] if len(bits) > 4 else "",
         })
 
-    status_out, _ = run_git(repo_root, ["status", "--short"])
-    git_status = status_out.splitlines() if status_out else []
+    # The main checkout's dirty files, each with its mtime. This is the ONLY
+    # trace a foreground Claude Code session leaves — it has no worktree, no
+    # lock and files no claim — so the board needs more than a count here: with
+    # the newest mtime it can say "alguien está tocando <file> hace 40 s", which
+    # is what a human actually means by "hay alguien trabajando".
+    status_out, _ = run_git(repo_root, ["status", "--short"], strip=False)
+    git_status = []
+    for line in (status_out.splitlines() if status_out else []):
+        code = line[:2]
+        path = line[3:].strip().strip('"')
+        if " -> " in path:                      # rename: the new path is the one on disk
+            path = path.split(" -> ", 1)[1]
+        try:
+            mtime = os.path.getmtime(os.path.join(repo_root, path))
+        except OSError:                          # deleted, or unreadable — never guessed
+            mtime = None
+        git_status.append({"code": code, "path": path, "mtime": mtime})
+    git_status.sort(key=lambda e: -(e["mtime"] or 0))
 
     kanban = read_kanban(repo_root)
 
@@ -796,7 +820,7 @@ def build_worktree_detail(target_path):
         return None
 
     log_out, _ = run_git(norm_target, ["log", "-20", "--oneline"])
-    status_out, _ = run_git(norm_target, ["status", "--short"])
+    status_out, _ = run_git(norm_target, ["status", "--short"], strip=False)
     branch_out, _ = run_git(norm_target, ["rev-parse", "--abbrev-ref", "HEAD"])
 
     return {
