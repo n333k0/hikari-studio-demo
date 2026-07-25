@@ -88,6 +88,18 @@
 > changes what an existing policy means). Log it in
 > [`docs/project-lessons.md`](docs/project-lessons.md) either way. See
 > [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §12, principle 10.
+>
+> **A correction from the user is the strongest trigger of that rule**, and
+> it fires without them asking. The user never has to say "update
+> `CLAUDE.md`" or "fix that skill" — picking the artifact that prevents
+> recurrence is this system's job. Route it to the most enforcing thing the
+> risk bar allows: a hook or script when the failure is mechanical, this file
+> or a `docs/` policy when it's a judgment call, a skill when it's a
+> workflow. **Two hard rules:** "it happened again" means the previous fix
+> treated a symptom — reopen the diagnosis instead of stacking a second
+> mitigation; and **never write a lesson whose cause nobody measured** — a
+> guess phrased as a finding makes the next session stop looking. Say what
+> was ruled out and how to capture evidence next time instead.
 
 Conventions and hard-won gotchas for this project. Read before editing so we don't
 re-litigate fixes we already made.

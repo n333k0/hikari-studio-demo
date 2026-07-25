@@ -391,6 +391,28 @@ and the exit-code convention (0 = pass, non-zero = fail/not-done).
     - **Either way, log it in `docs/project-lessons.md`.** A safe fix made
       without a trace is a fix the next session can't learn from; the lesson
       log is what makes "improves itself" cumulative instead of one-off.
+    - **A correction from the user is itself a trigger — the strongest one.**
+      The clause above says "notices a gap," which reads as self-initiated;
+      it is not. When the user corrects a behavior, that *is* the noticing,
+      and the same-session fix + lesson is owed without them asking for it.
+      They should never have to say "update `CLAUDE.md`" or "fix that skill"
+      — naming the artifact to change is this system's job, not theirs.
+      Route it to whatever actually prevents recurrence: a hook or script for
+      anything mechanical, `CLAUDE.md` or a `docs/` policy for a judgment
+      call, a skill for a workflow, the user-memory layer for a standing
+      preference. Prefer the most enforcing option the risk bar allows —
+      code that runs beats prose someone has to remember to read.
+    - **"It happened again" means the last fix was a symptom fix. Reopen the
+      diagnosis; do not stack another mitigation.** And **no lesson without
+      evidence**: a lesson entry asserting a cause nobody measured is worse
+      than no entry, because the next session inherits it as settled fact and
+      stops looking. If the cause is genuinely unknown, write down what was
+      ruled out and how to capture the evidence next time — never a guess
+      phrased as a finding. The `dash_probe` false negative is the worked
+      example: an unmeasured "transient" diagnosis shipped a retry that
+      halved a 1-in-3 failure instead of removing it, and the wrong cause
+      sat in the lesson log until the user reported the same bug a second
+      time (see `docs/project-lessons.md`, 2026-07-25).
 
 If a future change would violate one of these, that is the signal to stop and
 reconsider the design — not to weaken the principle.

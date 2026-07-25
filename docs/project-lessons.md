@@ -20,6 +20,31 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — A user correction is a system trigger; the user shouldn't have to name the file to fix
+- Context: the user asked whether these conversations improve the system
+  automatically, or whether they have to say "update `CLAUDE.md`" / "fix that
+  skill" each time. The self-improvement rule already existed
+  (`docs/ARCHITECTURE.md` §12, principle 10) — but it was worded as *"any
+  session that **notices** a gap"*, which reads as self-initiated and never
+  named a user correction as a trigger. It also required logging a lesson
+  without requiring that the lesson's cause be *measured*. Both gaps had just
+  produced a live failure: the `dash_probe` bug was "fixed" once with a
+  guessed cause and a retry, and recurred.
+- Lesson: a correction from the user is the strongest trigger of the
+  improve-itself rule, and asking them to identify which artifact to change
+  offloads the system's own job onto them. Route the fix to the most
+  enforcing surface the risk bar allows — a hook or script beats a doc,
+  because code runs and prose has to be remembered. Two hard rules attach:
+  **"it happened again"** means the last fix treated a symptom, so reopen the
+  diagnosis instead of stacking another mitigation; and **no lesson without
+  evidence**, because a guess written as a finding makes the next session
+  stop looking.
+- Apply: on any user correction, fix + log in the same session unasked. When
+  the cause is unknown, record what was ruled out and how to capture the
+  evidence next time — never a theory phrased as a conclusion.
+- Refs: `docs/ARCHITECTURE.md` §12 principle 10; `CLAUDE.md` → "This OS
+  improves itself"; the entry directly below is the worked example.
+
 ### 2026-07-25 — `cmd | grep -q` under `pipefail` reports failure on success (the "dashboard not running" bug)
 - Context: the `SessionStart` hook reported the WebsiteOS panel as "Not
   running" while the user had it open in a browser — twice, on two separate
