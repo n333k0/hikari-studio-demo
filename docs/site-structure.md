@@ -53,6 +53,32 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
 ### Planned pages / phases
 - [x] Home — largely built (see table above)
 - [ ] **Phase 1 — Product detail pages** — 1 of ~30 live: `productos/ensui-d70/index.html`.
+
+      **Validated? Not yet validated.** The page has been built and its AR
+      logic has been code-reviewed by an agent, but nobody has confirmed it
+      end-to-end on real hardware or with a human review pass. Do **not**
+      propose duplicating this template across the other ~29 products until
+      every item below is checked off — each with evidence (a link, a
+      screenshot, or an explicit "yes I checked X" from the user; an agent
+      reporting "verified" is not evidence):
+      - [ ] AR ("Ver en tu espacio") tested on a real **iOS** device via
+            Quick Look / USDZ — not just `canActivateAR` reviewed in code.
+      - [ ] AR tested on a real **Android** device via Scene Viewer / WebXR
+            — not just code review.
+      - [ ] The built page manually reviewed by the user end-to-end
+            (gallery, sticky bar, modals, specs accordion) — not just an
+            agent's self-reported "verified".
+      - [ ] Local vs. live reconciled: resolved 2026-07-25 — commit `77b514c`
+            ("fix Ensui D70 AR preview framing and add cord canopy cap") is
+            pushed to `main` and confirmed `built` on GitHub Pages, so
+            **local and live now match**. Live URL to test:
+            https://n333k0.github.io/hikari-studio-demo/productos/ensui-d70/
+            — future validators should still name which version they
+            checked if this drifts again (local file vs. pushed/live URL).
+      Until all four are checked, treat this template as proven for **one**
+      product page, not thirty — see `docs/KANBAN.md` for how this blocks
+      the rest of Phase 1.
+
       **Pattern decision (2026-07-24, revised from the original plan):** one
       static HTML file per product at `productos/<slug>/index.html` (matches
       the real site's URL shape), NOT a JS-templated single file driven by a
@@ -91,8 +117,10 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
         have named designers).
       - Specs (accordion or plain list): size, material, care — from the
         real description block.
-      - **"Ver en tu espacio" (AR)** — **real device AR, solved and working**
-        (2026-07-24), not a placeholder. Pipeline, run once per product:
+      - **"Ver en tu espacio" (AR)** — AR pipeline **built and code-reviewed**
+        (2026-07-24), not a placeholder — but **not yet confirmed on a real
+        device**; see **Validated?** above before treating this as proven.
+        Pipeline, run once per product:
         1. `mcp__claude_ai_Higgsfield__generate_3d` (model
            `tripo_h3_1_image_to_3d`, `auto_size:true`, `texture:true`,
            `pbr:true`) on the cleanest single studio photo → raw GLB.
@@ -145,6 +173,17 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
 ## How to use this file
 - Every session: read it, then open with a short status line before doing
   anything else — don't wait to be asked.
+- **Before proposing to scale or duplicate any page template across many
+  instances** (e.g. "let's build the other 29 product pages now"), check
+  that template's **Validated?** status in this file first. If it says "Not
+  yet validated," do not propose a batch — surface the specific unchecked
+  items and ask the user to confirm each one, with evidence (a link, a
+  screenshot, an explicit "yes I checked X"), rather than assuming a prior
+  session's "verified" or "working" claim means a human actually checked it.
+  This applies to every template, not just Phase 1 products — Phase 2/3/4
+  templates get the same field once they exist.
+- Check `docs/KANBAN.md` for the current priority-ordered worklist before
+  starting new work.
 - When scope changes (new page agreed, page finished, direction changed):
   update the relevant row/section here, in the same turn.
 - Keep it honest and current, not aspirational — "not started" is a fine

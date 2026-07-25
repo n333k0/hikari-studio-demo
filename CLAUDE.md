@@ -1,9 +1,29 @@
 # CLAUDE.md — Hikari Studio site
 
-> **Operating manual: read [`docs/change-workflow.md`](docs/change-workflow.md) FIRST**, then
+> **Every session, before anything else — even a bare "hey":** read
+> [`docs/site-structure.md`](docs/site-structure.md) and lead your first reply
+> with a short, honest status line (what's done, what's next, what's still
+> undefined). If the "Full site scope" there is still undefined, don't guess —
+> ask the user conversationally what they want for the rest of the site (see
+> [`docs/brief-guide.md`](docs/brief-guide.md) for the shape of that ask, not
+> a form to fill). When the user gives new scope or direction, update
+> `docs/site-structure.md` in the same turn so the next session already knows.
+>
+> **New here, or just want the plain-language "how do I keep building this"
+> guide?** Read [`docs/quick-start.md`](docs/quick-start.md) first.
+>
+> **Daily edits:** `/quick-site <request>` — the primary workflow. One-shot
+> implement → verify → repair. See [`.claude/skills/quick-site/SKILL.md`](.claude/skills/quick-site/SKILL.md).
+>
+> **High-risk changes** (hero image, header behavior, nav, global typography,
+> broad layout): [`docs/change-workflow.md`](docs/change-workflow.md) FIRST, then
 > `docs/website-spec.md`, `docs/protected-regions.md`, `docs/known-regressions.md`,
-> `docs/verification-policy.md`. Log new lessons in `docs/project-lessons.md`. Those docs
-> are the source of truth; this file is the quick reference.
+> `docs/verification-policy.md`. Log new lessons in `docs/project-lessons.md`.
+>
+> **Check [`docs/KANBAN.md`](docs/KANBAN.md) for current priorities** before starting new
+> work, and [`docs/site-structure.md`](docs/site-structure.md) for project scope and each
+> page template's **Validated?** status — never propose mass-duplicating a template that
+> isn't marked validated there.
 
 Conventions and hard-won gotchas for this project. Read before editing so we don't
 re-litigate fixes we already made.
