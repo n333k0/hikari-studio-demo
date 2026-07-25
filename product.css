@@ -1,0 +1,333 @@
+/* ============================================================
+   Product detail page (PDP) — extends styles.css.
+   Gantri-derived long-scroll product page: pinned scroll gallery +
+   buybox, scroll-reveal description, sticky bottom purchase bar
+   (docks above the footer, doesn't overlap it), blur-backdrop
+   modals, community + related rails. No reviews (the real store
+   has none).
+   ============================================================ */
+
+.pdp-main { padding-top: var(--header-h); position: relative; }
+/* the sticky purchase bar is the last thing inside <main>, meant to sit
+   flush against the footer — but .footer has its own margin-top (built for
+   sections that don't end in a sticky bar), which left a ~90px gap here. */
+.pdp-main + .footer { margin-top: 0; }
+
+/* ---------- Breadcrumb ---------- */
+.pdp-breadcrumb {
+  margin-bottom: var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  letter-spacing: .04em;
+  color: var(--text-t2);
+}
+.pdp-breadcrumb a:hover { color: var(--accent); }
+.pdp-breadcrumb .sep { margin: 0 6px; color: var(--text-t3); }
+.pdp-breadcrumb .current { color: var(--text-t1); text-transform: uppercase; }
+
+/* ---------- Pinned scroll gallery: the gallery+buybox row sticks
+   under the header while the tall wrapper is scrolled through; each
+   "step" of scroll swaps the active photo (Gantri pattern) — then
+   releases and the page continues normally. Height is set inline
+   per-page (JS) based on photo count. ---------- */
+.pdp-gallery-scroll {
+  position: relative;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-right: var(--gutter);   /* no padding-left: the gallery photo runs flush to the viewport edge */
+}
+.pdp-top {
+  position: sticky; top: var(--header-h);
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: var(--sp-6);
+  padding-block: var(--sp-3) var(--sp-6);
+  background: var(--surface-primary);
+}
+
+.pdp-gallery__main {
+  aspect-ratio: 1 / 1;
+  background: var(--surface-primary-alt);
+  overflow: hidden;
+  cursor: zoom-in;
+  position: relative;
+}
+.pdp-gallery__main img {
+  width: 100%; height: 100%; object-fit: cover;
+  opacity: 1; transition: opacity .22s ease;
+}
+.pdp-gallery__main img.is-fading { opacity: 0; }
+
+/* small overlaid thumbnails (not a separate row — sit on the image, as a
+   vertical filmstrip along the left edge, Gantri-style) */
+.pdp-gallery__dots {
+  position: absolute; left: var(--sp-2); top: var(--sp-2); z-index: 2;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pdp-gallery__dot {
+  width: 44px; height: 44px; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.7);
+  opacity: .55; transition: opacity .18s ease, box-shadow .18s ease;
+}
+.pdp-gallery__dot img { width: 100%; height: 100%; object-fit: cover; }
+.pdp-gallery__dot:hover { opacity: .85; }
+.pdp-gallery__dot.is-active { opacity: 1; box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--text-t1); }
+.pdp-gallery__progress {
+  position: absolute; right: var(--sp-2); bottom: var(--sp-2); z-index: 2;
+  font-family: var(--font-mono); font-size: 1.1rem; letter-spacing: .04em;
+  color: #fff; background: rgba(0,0,0,0.45); padding: 3px 8px;
+}
+
+.pdp-buybox { padding-top: var(--sp-1); }
+.pdp-buybox h1 {
+  font-size: clamp(2.8rem, 3.4vw, 3.8rem);
+  line-height: 1.05; font-weight: 400; letter-spacing: -0.01em;
+  margin: var(--sp-1) 0 var(--sp-2);
+}
+.pdp-dims { font-size: 1.4rem; color: var(--text-t2); margin-bottom: var(--sp-3); }
+.pdp-price { display: flex; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-1); }
+.pdp-price .now { font-size: 2.2rem; }
+.pdp-price .was { font-size: 1.6rem; color: var(--text-t3); text-decoration: line-through; }
+.pdp-price .save { font-family: var(--font-mono); font-size: 1.2rem; color: var(--accent); letter-spacing: .04em; }
+.pdp-installments { font-size: 1.4rem; color: var(--text-t2); margin-bottom: var(--sp-4); }
+.pdp-sku { font-family: var(--font-mono); font-size: 1.15rem; color: var(--text-t3); letter-spacing: .04em; margin-bottom: var(--sp-4); }
+
+.pdp-buyrow { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+.pdp-qty {
+  display: inline-flex; align-items: center; height: 48px;
+  border-radius: var(--radius-pill); box-shadow: inset 0 0 0 1px var(--divider);
+  overflow: hidden; flex-shrink: 0;
+}
+.pdp-qty button { width: 40px; height: 100%; font-size: 1.8rem; }
+.pdp-qty button:hover { background: var(--tint-04); }
+.pdp-qty input {
+  width: 34px; height: 100%; text-align: center; border: none;
+  font-family: inherit; font-size: 1.5rem; background: transparent;
+}
+.pdp-buyrow .btn--primary { flex: 1; }
+
+.pdp-secondary-actions { display: flex; align-items: center; gap: var(--sp-4); margin: var(--sp-3) 0 var(--sp-5); }
+.pdp-secondary-actions button {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 1.15rem; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-t1);
+}
+.pdp-secondary-actions button:hover { color: var(--accent); }
+.pdp-secondary-actions svg { width: 18px; height: 18px; }
+
+.pdp-ar {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface-warm-grey);
+  margin-bottom: var(--sp-4);
+}
+.pdp-ar svg { width: 22px; height: 22px; flex-shrink: 0; color: var(--text-t1); }
+.pdp-ar__label { font-size: 1.4rem; }
+.pdp-ar__sub { font-size: 1.2rem; color: var(--text-t2); }
+.pdp-ar button { margin-left: auto; }
+
+.pdp-process-note {
+  font-size: 1.4rem; line-height: 2.2rem; color: var(--text-t2);
+  border-top: 1px solid var(--divider); padding-top: var(--sp-3);
+}
+
+/* ---------- Sticky bottom purchase bar — lives as the LAST element
+   inside <main>, position:sticky (not fixed): it rides the bottom of
+   the viewport while scrolling through the page's own content, then
+   naturally stops the instant it reaches the end of <main> — i.e.
+   right above the footer, never overlapping it. No JS needed for the
+   "stop above the footer" part. ---------- */
+.pdp-sticky {
+  position: sticky; bottom: 0; z-index: 90;
+  transform: translateY(100%);
+  transition: transform .28s ease;
+  background: rgba(255,255,255,0.94);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  border-top: 1px solid var(--divider);
+}
+.pdp-sticky.is-visible { transform: translateY(0); }
+.pdp-sticky__inner {
+  width: 100%; max-width: 600px; margin-inline: auto; padding: var(--sp-2) var(--gutter);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.pdp-sticky__name { font-size: 1.5rem; flex-shrink: 0; display: none; }
+.pdp-sticky__price { font-size: 1.6rem; margin-right: auto; }
+.pdp-sticky__price .was { font-size: 1.3rem; color: var(--text-t3); text-decoration: line-through; margin-left: 6px; }
+.pdp-sticky__icon-btn {
+  width: 44px; height: 44px; border-radius: 50%; background: var(--tint-04);
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.pdp-sticky__icon-btn:hover { background: var(--tint-08); }
+.pdp-sticky__icon-btn svg { width: 19px; height: 19px; }
+.pdp-sticky__icon-btn--ar { background: var(--text-t1); color: #fff; }
+.pdp-sticky__icon-btn--ar:hover { background: var(--mono-800); }
+
+/* ---------- Section beats shared across the page ---------- */
+.pdp-section { padding-top: var(--sp-10); }
+.pdp-section h2 {
+  font-size: clamp(2.6rem, 3.6vw, 3.4rem); line-height: 1.08; font-weight: 400; letter-spacing: -0.01em;
+  margin-bottom: var(--sp-3);
+}
+.pdp-desc { max-width: 68ch; font-size: 1.6rem; line-height: 2.6rem; color: var(--text-t2); }
+.pdp-desc strong { color: var(--text-t1); font-weight: 500; }
+
+.pdp-more-photos {
+  display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+.pdp-more-photos img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 4/5; }
+.pdp-more-photos .tall { aspect-ratio: 3/4; }
+
+/* ---------- Scroll-reveal description: title + paragraph pin
+   centered in the viewport while a tall wrapper scrolls past; each
+   word lights up from light-grey to dark in sequence with scroll
+   progress (reference: large centered statement text that "fills in"
+   as you scroll). ---------- */
+.pdp-reveal { position: relative; height: 220vh; }
+.pdp-reveal__sticky {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding-inline: var(--gutter);
+}
+.pdp-reveal__title {
+  font-size: clamp(3.4rem, 6vw, 6.4rem); line-height: 1.04; font-weight: 400; letter-spacing: -0.02em;
+  max-width: 20ch; margin-bottom: var(--sp-4);
+}
+.pdp-reveal__text {
+  font-size: clamp(2rem, 2.6vw, 2.8rem); line-height: 1.45; max-width: 34ch;
+}
+.rv-word { color: var(--mono-200); transition: color .15s ease; }
+.rv-word.is-active { color: var(--text-t1); }
+
+/* ---------- Specs accordion (native <details>) ---------- */
+.pdp-specs-list { max-width: 68ch; border-top: 1px solid var(--divider); }
+.pdp-specs-list details {
+  border-bottom: 1px solid var(--divider);
+}
+.pdp-specs-list summary {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-block: var(--sp-3); font-size: 1.7rem; cursor: pointer; list-style: none;
+}
+.pdp-specs-list summary::-webkit-details-marker { display: none; }
+.pdp-specs-list summary::after {
+  content: "+"; font-size: 2rem; font-weight: 300; color: var(--text-t2); transition: transform .2s ease;
+}
+.pdp-specs-list details[open] summary::after { transform: rotate(45deg); }
+.pdp-specs-list .pdp-specs-body { padding-bottom: var(--sp-3); font-size: 1.5rem; line-height: 2.3rem; color: var(--text-t2); }
+
+/* ---------- Related lamps ---------- */
+.pdp-related { padding-bottom: var(--sp-10); }
+
+/* ---------- Blur-backdrop modal (gallery / compartir / medios de envío / AR) ---------- */
+.modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
+.modal[hidden] { display: none; }
+.modal--center { align-items: center; }
+.modal__backdrop {
+  position: absolute; inset: 0;
+  background: rgba(20,18,16,0.42);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+}
+.modal__panel {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 480px;
+  max-height: 86vh; overflow-y: auto;
+  background: #fff;
+  padding: var(--sp-5) var(--sp-4) var(--sp-6);
+  animation: modal-up .28s ease;
+}
+.modal--center .modal__panel { max-width: 720px; margin: var(--sp-4); }
+.modal--lightbox .modal__panel { max-width: min(92vw, 1000px); background: transparent; padding: 0; }
+.modal--lightbox .modal__panel img { width: 100%; height: auto; display: block; }
+@keyframes modal-up { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal__close {
+  position: absolute; top: var(--sp-3); right: var(--sp-3);
+  width: 36px; height: 36px; border-radius: 50%; background: var(--tint-04);
+  display: inline-flex; align-items: center; justify-content: center; z-index: 2;
+}
+.modal--lightbox .modal__close { background: rgba(255,255,255,0.9); }
+.modal__close:hover { background: var(--tint-08); }
+.modal__title { font-size: 2rem; margin-bottom: var(--sp-3); padding-right: var(--sp-6); }
+.modal__row { display: flex; gap: var(--sp-2); align-items: flex-start; padding-block: var(--sp-2); border-top: 1px solid var(--divider); }
+.modal__row:first-of-type { border-top: none; }
+.modal__row svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; }
+.modal__row-title { font-size: 1.5rem; }
+.modal__row-sub { font-size: 1.35rem; color: var(--text-t2); margin-top: 2px; }
+.modal__share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); margin-top: var(--sp-3); }
+.modal__share-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 1.15rem; color: var(--text-t2);
+}
+.modal__share-btn .ic { width: 48px; height: 48px; border-radius: 50%; background: var(--tint-04); display: grid; place-items: center; }
+.modal__share-btn:hover .ic { background: var(--tint-08); }
+.modal__share-btn svg { width: 20px; height: 20px; }
+.modal__copylink {
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin-top: var(--sp-4); padding: 12px var(--sp-2);
+  background: var(--surface-primary-alt); font-family: var(--font-mono); font-size: 1.3rem;
+}
+.modal__copylink span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-t2); }
+.modal__copylink button { color: var(--accent); flex-shrink: 0; font-family: var(--font-sans); font-size: 1.4rem; }
+
+/* ---------- AR modal: model-viewer + progress bar + QR fallback ---------- */
+.pdp-ar-viewer {
+  width: 100%; height: 380px; background: var(--surface-primary-alt);
+  --poster-color: transparent;
+}
+.mv-progress {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+}
+.mv-progress__track { width: 60%; height: 2px; background: var(--tint-08); }
+.mv-progress__bar { width: 0%; height: 100%; background: var(--text-t1); transition: width .15s ease; }
+.mv-progress.is-done { opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+
+.pdp-ar-cta {
+  display: flex; align-items: center; gap: 8px; justify-content: center;
+  width: 100%; margin-top: var(--sp-3);
+}
+.pdp-ar-note { font-size: 1.35rem; color: var(--text-t2); margin-top: var(--sp-2); text-align: center; }
+
+.pdp-ar-qr {
+  display: flex; align-items: center; gap: var(--sp-3);
+  margin-top: var(--sp-3); padding: var(--sp-3);
+  background: var(--surface-warm-grey);
+}
+.pdp-ar-qr__code { width: 96px; height: 96px; background: #fff; flex-shrink: 0; display: grid; place-items: center; }
+.pdp-ar-qr__code img, .pdp-ar-qr__code canvas { width: 100%; height: 100%; }
+.pdp-ar-qr__copy { font-size: 1.4rem; line-height: 2.1rem; color: var(--text-t2); }
+.pdp-ar-qr__copy strong { display: block; color: var(--text-t1); font-size: 1.55rem; margin-bottom: 2px; font-weight: 500; }
+
+/* ---------- WhatsApp FAB: same look as the homepage's inline-styled one,
+   but repositioned in CSS so it can move above the sticky purchase bar
+   instead of overlapping it ---------- */
+.wa-fab {
+  position: fixed; right: 20px; bottom: 20px; z-index: 110;
+  width: 56px; height: 56px; border-radius: 50%; background: #25D366;
+  display: grid; place-items: center; box-shadow: 0 6px 20px rgba(0,0,0,.18);
+  transition: bottom .28s ease;
+}
+.wa-fab.is-raised { bottom: 84px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  .pdp-top { grid-template-columns: 1fr; gap: var(--sp-4); position: static; top: auto; }
+  .pdp-gallery-scroll { height: auto !important; padding-inline: var(--gutter); }
+  .pdp-more-photos { grid-template-columns: 1fr; }
+  .pdp-sticky__name { display: none; }
+  .pdp-reveal { height: auto; padding-block: var(--sp-10); }
+  .pdp-reveal__sticky { position: static; height: auto; }
+}
+@media (max-width: 640px) {
+  .pdp-buyrow { flex-wrap: wrap; }
+  .pdp-buyrow .btn--primary { width: 100%; order: -1; }
+  .modal__share-grid { grid-template-columns: repeat(3, 1fr); }
+  .pdp-ar-qr { flex-direction: column; text-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pdp-sticky { transition: none; }
+  .modal__panel { animation: none; }
+  .rv-word { transition: none; }
+}

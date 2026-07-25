@@ -20,6 +20,36 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — `overflow-x:hidden` on `<body>` silently breaks `position:sticky`
+- Context: building the pinned scroll gallery + sticky purchase bar on the
+  Ensui D70 product page — every `position:sticky` element (the pinned
+  gallery row, the sticky purchase bar) rendered as `position:sticky` in
+  computed styles but behaved like `static`, scrolling away immediately.
+- Lesson: `body { overflow-x: hidden }` (used site-wide to clamp full-bleed
+  layout from causing horizontal scroll) makes `body`, not the viewport, the
+  effective scroll container in some browsers — which breaks `sticky` for
+  everything inside it. `html { overflow-x: hidden }` avoids this because
+  `html` is already the real scrolling element, so it's a no-op for that
+  concern.
+- Apply: overflow-x clamps belong on `<html>`, never `<body>`, on any page
+  that uses (or might later use) `position:sticky`. Already fixed globally
+  in `styles.css`.
+- Refs: known-regressions.md.
+
+### 2026-07-25 — `position:sticky`'s range is bounded by its immediate parent, not any tall ancestor
+- Context: same pinned-gallery build — after fixing the overflow-x issue
+  above, the sticky gallery row still only stuck for a few px before
+  scrolling away, despite sitting inside a 4050px-tall scroll wrapper.
+- Lesson: a sticky element only has "room to stick" for as long as its
+  *direct parent's* box is on screen — not any distant tall ancestor. If the
+  direct parent auto-sizes to the sticky child's own height (e.g. a `.container`
+  div that just wraps it), the sticky range collapses to ~nothing even though
+  a grandparent wrapper is genuinely tall.
+- Apply: when building a "pin while a tall region scrolls past" effect, the
+  tall element must be the sticky item's *immediate* containing block —
+  don't put a shrink-wrapped div directly between them.
+- Refs: `product.css` → `.pdp-gallery-scroll` / `.pdp-top`.
+
 ### 2026-07-24 — Verify both breakpoints, every time
 - Context: fixes were confirmed on desktop but broke mobile (and vice-versa).
 - Lesson: a change is not verified until seen at BOTH 1440px and 390px.
