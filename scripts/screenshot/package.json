@@ -1,0 +1,14 @@
+{
+  "name": "hikari-screenshotter",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Dedicated screenshot capture for the website-change verification system. Playwright is the screenshot engine; chrome-devtools-axi remains the DOM engine. One responsibility only.",
+  "bin": { "shoot": "./shoot.mjs" },
+  "scripts": {
+    "postinstall-browser": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  }
+}

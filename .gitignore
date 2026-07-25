@@ -1,2 +1,6 @@
 .DS_Store
 *.log
+.agent-state/
+.claude/worktrees/
+scripts/screenshot/node_modules/
+scripts/screenshot/package-lock.json

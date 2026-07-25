@@ -1,0 +1,59 @@
+HIKARI STUDIO — QUICK REFERENCE
+
+═══════════════════════════════════════════════════════════════════════════════
+DECISION: Which workflow?
+═══════════════════════════════════════════════════════════════════════════════
+
+Almost everything:
+  Copy edit, color tweak, spacing, component/responsive adjustment.
+  ──→ Use: /quick-site "description of the change"
+  (Claude classifies risk, implements, verifies, repairs — one shot.)
+
+Genuinely high-risk or ambiguous scope:
+  • Hero image swap  • Header behavior  • Navigation  • Global typography
+  • Broad/structural layout change
+  ──→ /quick-site will detect this and escalate itself, or start directly:
+      scripts/run.sh start "description" (full workflow)
+
+═══════════════════════════════════════════════════════════════════════════════
+/quick-site FLOW  (see .claude/skills/quick-site/SKILL.md for full detail)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. You run:  /quick-site "what you want changed"
+2. Claude classifies risk, implements the smallest edit, runs:
+     scripts/run.sh quick --baseline --risk <level>
+     scripts/run.sh quick --verify   --risk <level>
+3. Pass → done, concise summary printed.
+   Fail → Claude repairs the ONE cause, verifies again (max 3 attempts).
+4. Still failing after 3 → escalates to the full workflow below.
+
+═══════════════════════════════════════════════════════════════════════════════
+FULL WORKFLOW (high-risk, complex changes)
+═══════════════════════════════════════════════════════════════════════════════
+
+scripts/run.sh start "<request>"
+# → Claude: write acceptance-criteria.md + expected-files.txt
+scripts/run.sh baseline
+# → Capture pre-change state
+# → Claude: implement the change
+scripts/run.sh verify
+# → Run all checks, capture after-state
+# → Claude: review visual + scope
+scripts/run.sh review visual_review pass
+scripts/run.sh review acceptance_criteria_pass pass
+scripts/run.sh review scope_review pass
+# → (repair cycle if needed: fix + run.sh verify again, max 3 times)
+scripts/run.sh report
+# → Generate final-report.md + final_status
+
+═══════════════════════════════════════════════════════════════════════════════
+DOCS
+═══════════════════════════════════════════════════════════════════════════════
+
+Quick edits:        docs/quick-verify.md
+Complex changes:    docs/change-workflow.md
+Protected regions:  docs/protected-regions.md
+Design system:      docs/website-spec.md
+Known bugs:         docs/known-regressions.md
+Architecture:       docs/ARCHITECTURE.md
+Lessons learned:    docs/project-lessons.md
