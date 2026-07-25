@@ -162,6 +162,45 @@ else
 fi
 echo
 
+# Committed locally but not on GitHub. A bare count ("3 sin pushear") is not
+# useful - the user asked, explicitly, to always be told WHAT is unpushed, and
+# the first thing they want to know is whether it touches the live site or just
+# the tooling. So print subject + an area tag derived from the files each commit
+# actually changed, never just a number.
+# Caveat worth keeping honest: this compares against the last-known origin/main.
+# The hook does no network fetch (a stalled fetch would eat its 15s budget), so
+# a push made from a DIFFERENT checkout won't be reflected until someone fetches
+# here. Pushes from this checkout update origin/main locally, which is the case
+# that actually happens in this project.
+echo "--- Committed here but NOT pushed to GitHub (name what they are, never just a count) ---"
+if ! git rev-parse --verify -q origin/main >/dev/null 2>&1; then
+  echo "(no origin/main known locally - can't tell what's unpushed; say so rather than guessing)"
+elif [ -z "$(git log --format=%H origin/main..main 2>/dev/null)" ]; then
+  echo "(nothing - main matches origin/main, everything is on GitHub)"
+else
+  while read -r sha; do
+    [ -n "$sha" ] || continue
+    subject="$(git log -1 --format=%s "$sha")"
+    files="$(git show --pretty=format: --name-only "$sha" </dev/null | sed '/^$/d')"
+    site=no; system=no
+    while read -r f; do
+      [ -n "$f" ] || continue
+      case "$f" in
+        productos/*|images/*|media/*|models/*|index.html|styles.css|product.css|main.js|product.js) site=yes ;;
+        scripts/*|docs/*|.claude/*|CLAUDE.md) system=yes ;;
+        *) system=yes ;;
+      esac
+    done <<< "$files"
+    if [ "$site" = yes ] && [ "$system" = yes ]; then area="SITIO+SISTEMA"
+    elif [ "$site" = yes ]; then area="SITIO"
+    else area="SISTEMA"; fi
+    echo "  $(git log -1 --format=%h "$sha")  [$area]  $subject"
+    printf '        toca: %s\n' "$(echo "$files" | tr '\n' ' ' | sed 's/ $//')"
+  done <<< "$(git log --reverse --format=%H origin/main..main 2>/dev/null)"
+  echo "  SITIO = cambios visibles en la web; SISTEMA = hooks/scripts/docs/panel."
+fi
+echo
+
 echo "--- Pending shared-file edits, flagged but not yet applied (docs/site-structure.md) ---"
 if [ -f docs/site-structure.md ] && grep -q '<!-- PENDING-SHARED-EDITS:START -->' docs/site-structure.md; then
   awk '/<!-- PENDING-SHARED-EDITS:START -->/,/<!-- PENDING-SHARED-EDITS:END -->/' docs/site-structure.md

@@ -27,6 +27,17 @@
 > swallow it. Never restate the whole board in prose; it's a one-liner, the
 > panel is where the detail lives.
 >
+> **Unpushed commits get named, never counted.** The hook prints a
+> "Committed here but NOT pushed to GitHub" section with each commit's
+> subject, the files it touches, and a `[SITIO]` / `[SISTEMA]` /
+> `[SITIO+SISTEMA]` tag. Render that, not a bare "N sin pushear" — the first
+> thing the user wants to know is whether the pending work changes the live
+> site or only the tooling. Two honesty notes: the comparison is against the
+> last-known `origin/main` with no network fetch, and **another session
+> sharing this checkout can push while you talk**, so a count you stated
+> earlier in the conversation may already be stale — re-read it from git
+> before repeating it, don't quote your own earlier message.
+>
 > Then the per-phase status ("vista gorda"), then a short
 > **ready-to-review** list — one live link per distinct section that has
 > finished work (home, one example product page + "+N more" if there are
