@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# session-start-summary.sh — deterministic SessionStart print, five parts:
+# session-start-summary.sh — deterministic SessionStart print, six parts:
 #   1. active git worktrees (parallel agent dispatch may be in flight)
 #   2. active agent claims: locked worktrees' declared scope, so a new
 #      session knows what NOT to touch and can suggest non-overlapping work
@@ -9,6 +9,10 @@
 #   5. ready-to-review links: one per section with finished work, collapsed
 #      ("+N more") for sections with several pages of the same type — never
 #      an exhaustive per-page list.
+#   6. the dashboard ("General y sus Soldados"): its live localhost URL when
+#      the server is already up, otherwise the command to start it. It's part
+#      of the system, so it belongs in the opening status next to the site
+#      links, not something the user has to remember exists.
 # Pure filesystem glob + git, no reasoning: the model's job is to render this
 # into a status line, not to rediscover what exists. See docs/ARCHITECTURE.md
 # §13 for the "why a hook, not a doc-read convention" rationale.
@@ -166,4 +170,31 @@ if [ -f contacto/index.html ]; then
   echo "Contacto: $PAGES_BASE/contacto/"
 else
   echo "Contacto / Política de Devolución: none yet (Phase 4 not started)"
+fi
+echo
+
+echo "--- Dashboard: \"General y sus Soldados\" (local panel: worktrees, agent claims, kanban) ---"
+# Probe the port range server.py actually walks (DEFAULT_PORT 8765, +9). Check
+# the socket first with bash /dev/tcp - instant on a closed local port - and
+# only spend a curl on ports that are genuinely open, so a hung service on one
+# of them can't eat the hook's timeout. The grep for the panel's own name keeps
+# us from announcing somebody else's server as the dashboard.
+port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") >/dev/null 2>&1; }
+if [ -x .claude/dashboard/serve.sh ]; then
+  dash_url=""
+  for p in $(seq 8765 8774); do
+    port_open "$p" || continue
+    if curl -fsS -m 2 "http://localhost:$p/" 2>/dev/null | grep -q "Soldados"; then
+      dash_url="http://localhost:$p/"
+      break
+    fi
+  done
+  if [ -n "$dash_url" ]; then
+    echo "Running now: $dash_url"
+  else
+    echo "Not running. Start it:  .claude/dashboard/serve.sh   -> then open http://localhost:8765/"
+    echo "  (serve.sh auto-tries 8765-8774 and prints whichever port it bound.)"
+  fi
+else
+  echo "(no .claude/dashboard/serve.sh in this checkout - dashboard not installed here)"
 fi

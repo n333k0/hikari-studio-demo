@@ -13,7 +13,11 @@
 > example product page + "+N more" if there are several, category/blog/
 > contacto once those phases start), not an exhaustive per-page list. The
 > `SessionStart` hook below prints the raw discovered links; the reply just
-> has to render them, collapsed.
+> has to render them, collapsed. Include the **dashboard** link in that same
+> list — "General y sus Soldados" (`.claude/dashboard/serve.sh`) is part of
+> the system, not an extra: the hook prints its live `localhost` URL when the
+> server is already up, or the start command when it isn't. Render whichever
+> the hook reported; don't claim it's running when the hook said it isn't.
 >
 > **New here, or just want the plain-language "how do I keep building this"
 > guide?** Read [`docs/quick-start.md`](docs/quick-start.md) first.

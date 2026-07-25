@@ -71,7 +71,9 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
 
 ### Planned pages / phases
 - [x] Home — largely built (see table above)
-- [ ] **Phase 1 — Product detail pages** — 1 of ~30 live: `productos/ensui-d70/index.html`.
+- [ ] **Phase 1 — Product detail pages** — 3 of ~30 live: `productos/ensui-d70/`,
+      `productos/ensui-d50/`, `productos/ikigai-s/` (matches the status table
+      above; this line read "1 of ~30" until 2026-07-25).
 
       **Validated? Not yet validated.** The page has been built and its AR
       logic has been code-reviewed by an agent, but nobody has confirmed it

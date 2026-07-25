@@ -20,6 +20,21 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — A tool nobody links to doesn't exist: surface system surfaces in the status
+- Context: the dashboard ("General y sus Soldados") was built and running on
+  `localhost:8765`, but the `SessionStart` hook never mentioned it, so the
+  opening status listed only the site's Pages links and the user had to ask for
+  the dashboard link by hand.
+- Lesson: anything that's part of the operating system of this project — not
+  just site content — needs a printed entry point, or each session silently
+  rediscovers (or forgets) it. Print the *live* URL when it's up and the start
+  command when it isn't, so the line is never a guess.
+- Apply: probe a local tool's real port range with bash `/dev/tcp` first (instant
+  on a closed local port), then spend a `curl -m 2` only on open ports and grep
+  for the tool's own name — that keeps a hung or unrelated service off the hook's
+  15s budget and stops us announcing somebody else's server as ours.
+- Refs: `scripts/session-start-summary.sh` → part 6; `CLAUDE.md` opening block.
+
 ### 2026-07-25 — "No worktree" is not "no work": foreground edits are invisible to the claim system
 - Context: asked where an in-progress AR fix lived, this session checked every
   branch and every worktree, found them all clean or already merged, and told
