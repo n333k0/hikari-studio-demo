@@ -82,10 +82,15 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
       every item below is checked off — each with evidence (a link, a
       screenshot, or an explicit "yes I checked X" from the user; an agent
       reporting "verified" is not evidence):
-      - [ ] AR ("Ver en tu espacio") tested on a real **iOS** device via
-            Quick Look / USDZ — not just `canActivateAR` reviewed in code.
+      - [x] AR ("Ver en tu espacio") tested on a real **iOS** device via
+            Quick Look / USDZ — **confirmed by the user 2026-07-25**: it
+            opens and renders with its real textures (so the PNG-texture fix
+            holds on hardware, not just in `unzip -l`).
       - [ ] AR tested on a real **Android** device via Scene Viewer / WebXR
-            — not just code review.
+            — not just code review. **Still unchecked**: the 2026-07-25
+            confirmation was iPhone only. Android takes the GLB path
+            (different file, different runtime), so iOS passing says nothing
+            about it.
       - [ ] The built page manually reviewed by the user end-to-end
             (gallery, sticky bar, modals, specs accordion) — not just an
             agent's self-reported "verified".
@@ -101,25 +106,35 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
             `.usdz` now verify `webp=0 png=3` via `unzip -l`. The conversion is
             no longer a one-off: it lives in `scripts/3d/export_usdz.py`, which
             is what stops it regressing a third time.
-      - [ ] **Pendant hang confirmed on a real device.** The D70 model was
-            re-authored 2026-07-25 so it *hangs* (shade at 1,29 m, canopy at
-            2,40 m, anchor at y=0) instead of resting on the floor — see
-            `scripts/3d/README.md`. Verified locally only: bbox `0 → 2.40 m`,
-            anchor survives the GLB round-trip, preview framing screenshotted
-            at 390×844 and 1440×900. Whether Quick Look / Scene Viewer really
-            rest `bbox.min.y` on the detected plane is **the premise of the
-            whole technique and is unproven on hardware.**
+      - [x] **Pendant hang confirmed on a real device — 2026-07-25.** The
+            user placed the D70 in AR on an iPhone and it appeared **hanging
+            in the air**, not resting on the floor. This is the item that
+            mattered most: the whole technique rests on the premise that
+            Quick Look / Scene Viewer anchor `bbox.min.y` to the detected
+            plane, so a pendant must carry its own drop (shade at 1,29 m,
+            canopy at 2,40 m, anchor mesh at y=0 — `scripts/3d/pendant_hang.py`,
+            see `scripts/3d/README.md`). **The premise is now proven on
+            hardware, for Quick Look.** Scene Viewer still inferred, not
+            observed.
       - [ ] **Ensui D50 still rests on the floor in AR.** It is a pendant
             ("Colgante gota") but only the D70 got the hang treatment, by
-            decision, so the method could be proven on one product first. Apply
-            `pendant_hang.py` to it once the D70 is confirmed. Ikigai S is a
-            *lámpara de pie* and correctly stays floor-standing.
-      Until all five are checked, treat this template as proven for **zero**
-      product pages end-to-end (D70's AR was fixed once, but the underlying
-      *pipeline step* that produced the webp bug hasn't been corrected at
-      its source, since two more products built the same way have the same
-      defect) — not thirty. See `docs/KANBAN.md` for how this blocks the
-      rest of Phase 1.
+            decision, so the method could be proven on one product first.
+            **That gate is now cleared** (see the item above), so applying
+            `pendant_hang.py` to the D50 is unblocked — it's backlog #1 in
+            `docs/KANBAN.md`. Note the D50 GLB has no cord geometry at all,
+            so a cord has to be borrowed from the D70 or synthesised.
+            Ikigai S is a *lámpara de pie* and correctly stays floor-standing.
+      Two items remain unchecked: **Android AR** and the **user's end-to-end
+      manual review**. Until those clear, this template is proven for AR on
+      iOS only. What that does and doesn't cost, measured 2026-07-25 rather
+      than assumed: the shared `styles.css` / `product.css` / `main.js` /
+      `product.js` mean any **styling or behavior** fix found later is a
+      single edit that reaches every product — but each PDP is its own HTML
+      file (~470 lines, of which only ~139 differ between two products), so
+      a **markup/structure** fix found later costs one edit per product page
+      that exists by then. That asymmetry, not a blanket "don't scale," is
+      the real argument for reviewing the structure before duplicating it.
+      See `docs/KANBAN.md` for the current state of the Phase 1 gate.
 
       **Pattern decision (2026-07-24, revised from the original plan):** one
       static HTML file per product at `productos/<slug>/index.html` (matches

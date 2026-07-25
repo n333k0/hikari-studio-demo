@@ -36,23 +36,21 @@ an unformatted bullet still renders, just with less structure.
 
 - **Phase 1 product-page template validation.** Full checklist lives in
   `docs/site-structure.md` → "Planned pages / phases" → Phase 1 →
-  **Validated?**. Currently **not yet validated**. Outstanding: AR tested on
-  a real iOS device, AR tested on a real Android device, and the built page
-  manually reviewed end-to-end by the user. The D50/Ikigai S USDZ
-  webp-texture bug is **fixed** (2026-07-25, all three verify `webp=0 png=3`).
-  Per the rule in `docs/site-structure.md` → "How to use this file," no session
-  should propose building the remaining ~27 product pages until these are
-  checked off with evidence. Live URL to test AR on a real phone:
+  **Validated?**. **Partially validated as of 2026-07-25.** Cleared: iOS AR
+  confirmed on a real iPhone by the user (renders with real textures), and
+  the pendant hang confirmed hanging in the air. Still outstanding: **AR on a
+  real Android device** (Scene Viewer takes the GLB path — a different file
+  and runtime, so iOS passing proves nothing about it) and the **user's
+  end-to-end manual review** of the built page. Live URL:
   https://n333k0.github.io/hikari-studio-demo/productos/ensui-d70/
 
-- **Pendant hang, unproven on hardware (new 2026-07-25).** The D70 model now
-  carries its own 1,29 m drop (84 cm of cord from a 2,40 m ceiling) plus a
-  y=0 anchor so AR shows it *hanging*
-  instead of resting on the floor (`scripts/3d/pendant_hang.py`). The premise —
-  that Quick Look / Scene Viewer rest `bbox.min.y` on the detected plane — has
-  never been confirmed on a device in this project. Confirm on the D70 before
-  applying it to any other pendant. If it fails, the CSS/JS/framing half of the
-  change stands on its own and only `models/` needs reverting.
+  What the two open items actually risk, measured rather than assumed: the
+  shared `styles.css` / `product.css` / `main.js` / `product.js` mean a
+  **styling or behavior** defect found later is one edit for all products,
+  but each PDP is its own ~470-line HTML file (only ~139 lines differ between
+  two products), so a **markup/structure** defect found later costs one edit
+  per page already built. Scaling before the review is a bounded, known bet
+  on the structure being right — not the open-ended risk it was yesterday.
 
 ## Backlog (priority order)
 
@@ -61,7 +59,9 @@ an unformatted bullet still renders, just with less structure.
    proven on one product first. `blender --background --python
    scripts/3d/pendant_hang.py -- --glb models/ensui-d50.glb ...` — note the
    D50 model has **no cord geometry at all**, so one has to be borrowed from
-   the D70 GLB or synthesised. **Blocked** on the D70 confirming on hardware.
+   the D70 GLB or synthesised. **Unblocked 2026-07-25** — the D70 confirmed
+   hanging on a real iPhone, so the technique is proven and this is now the
+   top ready-to-do item.
 2. **Source a real home-page card for Ikigai S** (price/copy from the live
    site) — it has no card in the "Novedades" carousel yet, unlike D50 which
    already had one with a placeholder `href`.
@@ -87,10 +87,12 @@ an unformatted bullet still renders, just with less structure.
 
 ## Needs a human decision
 
-- **AR real-device confirmation itself.** Testing "Ver en tu espacio" on a
-  real iPhone (Quick Look/USDZ) and a real Android phone (Scene
-  Viewer/WebXR) requires physical hardware only the user has — an agent
-  cannot self-certify this.
+- ~~AR real-device confirmation on iPhone~~ — **done 2026-07-25**: the user
+  confirmed Quick Look opens the D70, renders it with real textures, and
+  shows it hanging in the air.
+- **AR real-device confirmation on Android** (Scene Viewer/WebXR, GLB path)
+  — still needs physical hardware only the user has; an agent cannot
+  self-certify this.
 - ~~Local vs. live reconciliation for Ensui D70~~ — resolved 2026-07-25,
   commit `77b514c` pushed and confirmed `built` on GitHub Pages.
 - **End-to-end manual review of the built PDP** (gallery, sticky bar,
