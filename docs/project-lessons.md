@@ -20,6 +20,27 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — "No worktree" is not "no work": foreground edits are invisible to the claim system
+- Context: asked where an in-progress AR fix lived, this session checked every
+  branch and every worktree, found them all clean or already merged, and told
+  the user there was "no trace" of it. Wrong: it was live in `scripts/3d/` —
+  uncommitted, in the main checkout, being written while the session spoke.
+  The claim hook only scans *locked worktrees*, so ordinary foreground work by
+  another session declares nothing and shows up nowhere.
+- Lesson: a coordination signal keyed to a *mechanism* (worktree locks) only
+  covers work that uses that mechanism. The most common shape of work — editing
+  the main checkout directly — was the one shape the whole claim system couldn't
+  see. Also: "I checked branches and worktrees" is not "I checked for work";
+  uncommitted working-tree state is a first-class place work lives.
+- Apply: `git status --porcelain` on the checkout is now part of the
+  SessionStart print, each path annotated with the age of its newest file and
+  flagged `LIKELY ACTIVE` under 90 minutes. Prefer *observational* fixes like
+  this over new conventions when the gap involves a session that has no reason
+  to know you exist — recency needs no cooperation from the other session. When
+  asked "is anything working on X," check working-tree state, not just refs.
+- Refs: `scripts/session-start-summary.sh` (part 3); ARCHITECTURE.md §13 →
+  "The claim system's blind spot: foreground work in the main checkout".
+
 ### 2026-07-25 — Pick a dispatched agent's model by capability floor, not by name
 - Context: user asked how model selection works when spawning soldados. It
   didn't — nothing in `CLAUDE.md`, `ARCHITECTURE.md` §13 or `KANBAN.md` said

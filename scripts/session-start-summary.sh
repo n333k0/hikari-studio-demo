@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# session-start-summary.sh — deterministic SessionStart print, four parts:
+# session-start-summary.sh — deterministic SessionStart print, five parts:
 #   1. active git worktrees (parallel agent dispatch may be in flight)
 #   2. active agent claims: locked worktrees' declared scope, so a new
 #      session knows what NOT to touch and can suggest non-overlapping work
-#   3. pending shared-file edits flagged but not yet applied
-#   4. ready-to-review links: one per section with finished work, collapsed
+#   3. uncommitted work in THIS checkout, with recency — catches foreground
+#      work by another session, which has no worktree and so files no claim
+#   4. pending shared-file edits flagged but not yet applied
+#   5. ready-to-review links: one per section with finished work, collapsed
 #      ("+N more") for sections with several pages of the same type — never
 #      an exhaustive per-page list.
 # Pure filesystem glob + git, no reasoning: the model's job is to render this
@@ -43,6 +45,59 @@ if [ "$found_locked" -eq 0 ]; then
   echo "(no locked worktrees - no other agent has declared itself active)"
   echo
 fi
+
+echo "--- Uncommitted work in this checkout (may be another session's foreground work - it has no worktree, so no claim) ---"
+# The claims section above only sees *locked worktrees*. A session editing this
+# checkout directly is invisible there, which once led a session to report "no
+# trace of that work" when it was live in scripts/3d/. Recency is the tell:
+# something touched minutes ago is in flight, not leftover.
+file_mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null || echo 0; }
+newest_mtime() {  # newest file under a path (dirs: git reports untracked dirs, not files)
+  local p="$1" newest=0 m f
+  if [ -d "$p" ]; then
+    while IFS= read -r f; do
+      m="$(file_mtime "$f")"; [ "$m" -gt "$newest" ] && newest="$m"
+    done < <(find "$p" -type f 2>/dev/null)
+  elif [ -e "$p" ]; then
+    newest="$(file_mtime "$p")"
+  fi
+  echo "$newest"
+}
+porcelain="$(git status --porcelain 2>/dev/null)"
+git_rc=$?
+if [ "$git_rc" -ne 0 ]; then
+  echo "WARNING: 'git status' failed here - cannot tell whether another session is mid-edit. Check by hand."
+elif [ -z "$porcelain" ]; then
+  echo "(clean - nothing uncommitted)"
+else
+  now="$(date +%s)"
+  shown=0
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    status_code="${line:0:2}"; path="${line:3}"
+    path="${path#\"}"; path="${path%\"}"        # git quotes paths with odd chars
+    path="${path##* -> }"                        # renames: report the destination
+    if [ "$shown" -ge 20 ]; then
+      echo "  ... (more - run 'git status' for the full list)"
+      break
+    fi
+    mt="$(newest_mtime "$path")"
+    age_note=""
+    if [ "$mt" -gt 0 ]; then
+      age_min=$(( (now - mt) / 60 ))
+      if [ "$age_min" -lt 0 ]; then age_min=0; fi
+      if [ "$age_min" -le 90 ]; then
+        age_note="   <-- touched ${age_min}m ago, LIKELY ACTIVE"
+      else
+        age_note="   (touched ${age_min}m ago)"
+      fi
+    fi
+    echo "  $status_code $path$age_note"
+    shown=$((shown + 1))
+  done <<< "$porcelain"
+  echo "  Treat anything marked LIKELY ACTIVE as another session's in-flight work unless you know it's yours."
+fi
+echo
 
 echo "--- Pending shared-file edits, flagged but not yet applied (docs/site-structure.md) ---"
 if [ -f docs/site-structure.md ] && grep -q '<!-- PENDING-SHARED-EDITS:START -->' docs/site-structure.md; then

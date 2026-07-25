@@ -596,6 +596,24 @@ only inspects *currently-locked* worktrees, so a stale claim file left behind
 is inert rather than misleading. Deleting it when a worktree unlocks is good
 hygiene, not a requirement.
 
+**The claim system's blind spot: foreground work in the main checkout.** Claims
+are keyed to *locked worktrees*, so a session editing the primary checkout
+directly — the normal shape of ordinary foreground work — declares nothing and
+appears nowhere. This is not a rule anyone broke; the convention simply never
+covered it. It bit for real on 2026-07-25: a session inspected every branch and
+worktree, found all of them clean or merged, and told the user there was "no
+trace" of an AR fix that was at that moment live in `scripts/3d/` — uncommitted,
+in the main checkout, invisible to every signal the hook printed.
+
+The fix is deliberately *observational*, not another convention to remember:
+`session-start-summary.sh` prints `git status --porcelain` for this checkout and
+annotates each path with the age of its newest file, flagging anything touched
+within 90 minutes as `LIKELY ACTIVE`. Recency is what distinguishes live work
+from stale leftovers, and it needs no cooperation from the session doing the
+work — which is the point, since that session has no reason to know another one
+just opened. It stays a soft signal like everything else here: it says "someone
+may be mid-edit on this path," never "you may not touch it."
+
 **This is a soft signal today, not an enforced one.** Nothing currently stops a
 session from editing a claimed path — the claim file is informational, and the
 guarantee rests on every session actually reading and respecting it (the same
