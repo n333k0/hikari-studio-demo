@@ -35,10 +35,32 @@
 > edits"** list in [`docs/site-structure.md`](docs/site-structure.md) for
 > anything already flagged but not yet applied.
 >
+> **Another session's agent may be active right now.** The `SessionStart` hook
+> prints an **"Active agent claims"** section listing every currently-locked
+> worktree and its declared scope (or a loud warning if no scope was declared).
+> Read it and fold it into your opening reply: name what's claimed and by
+> what task. If the user's request would touch a claimed path, say so plainly
+> and propose a non-overlapping or read-only alternative instead of just
+> proceeding — don't silently edit a path another live agent owns. This is a
+> **soft signal, not an enforced block** (see `docs/ARCHITECTURE.md` §13,
+> "Declaring scope at lock time"), so respecting it is on you, every session.
+> Conversely, when *you* lock a worktree for background/parallel work, file
+> your own claim at `.agent-state/claims/<worktree-dir-name>.md` (task +
+> allowed scope + forbidden paths) as your first action, before any edit.
+>
 > **Check [`docs/KANBAN.md`](docs/KANBAN.md) for current priorities** before starting new
 > work, and [`docs/site-structure.md`](docs/site-structure.md) for project scope and each
 > page template's **Validated?** status — never propose mass-duplicating a template that
 > isn't marked validated there.
+>
+> **This OS improves itself.** Notice a gap in the tooling/docs/conventions
+> themselves (not site content)? Fix it the same session — directly if it's
+> safe (additive, reversible, non-gating: a hook section, a doc fix, a
+> backlog item, an obvious script bug), or propose-and-ask first if it's
+> risky/ambiguous (anything that could gate/block a future session, or that
+> changes what an existing policy means). Log it in
+> [`docs/project-lessons.md`](docs/project-lessons.md) either way. See
+> [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) §12, principle 10.
 
 Conventions and hard-won gotchas for this project. Read before editing so we don't
 re-litigate fixes we already made.

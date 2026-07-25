@@ -42,6 +42,16 @@ cleared, done) — same rule as `docs/site-structure.md`.
 5. **Phase 3 — Blog / Tutoriales.** Not started. No content shape agreed
    yet beyond "it exists on the real site as `/blog/`."
 6. **Phase 4 — Contacto, Política de Devolución.** Not started.
+7. **Hard-enforce agent claims** (2026-07-25, deliberately deferred — see
+   `docs/ARCHITECTURE.md` §13 "Declaring scope at lock time"). Today, a
+   locked worktree's declared scope (`.agent-state/claims/<name>.md`) is only
+   a soft signal: `SessionStart` surfaces it, `CLAUDE.md` instructs sessions
+   to respect it, but nothing technically stops an edit to a claimed path.
+   Next step: a `PreToolUse` hook that checks `Edit`/`Write` targets against
+   active claims and refuses collisions. Deferred until the soft version has
+   run in practice for a while and claim-file cleanup (deleting a claim when
+   its worktree unlocks) is reliably happening — an enforced block against a
+   stale, un-cleaned-up claim would wrongly refuse legitimate work.
 
 ## Needs a human decision
 

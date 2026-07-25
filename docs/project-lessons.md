@@ -20,6 +20,34 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — Independently-opened sessions need a way to see each other's active scope
+- Context: user opened a second Claude Code session (dashboard work) while
+  this session was active. Separately, this session found 7 old worktrees
+  from a prior parallel-dispatch batch and, going only on the user's
+  recollection ("terminado pero congelado sin mergear"), almost reported them
+  as unmerged/at-risk — a byte-for-byte diff against `main` showed 6 of the 7
+  were already fully merged (one even superseded by a newer `main` revision).
+  Two distinct gaps: (1) nothing let this session know *what* the other live
+  session was allowed to touch, only *that* a worktree was locked; (2) a
+  verbal/remembered status ("frozen, not merged") had silently gone stale
+  and would have been trusted without the diff.
+- Lesson: in a multi-session setup, (a) "locked" is not "scoped" — knowing an
+  agent is active tells you nothing about what it's safe to avoid, unless
+  scope is declared somewhere machine-readable; (b) any claim about
+  merge/freeze/done state (yours, the user's, or a doc's) is a hypothesis
+  until checked against a real `diff`/`git log` — state drifts fast when
+  multiple sessions touch the same repo.
+- Apply: (a) — built the claim-file system: `.agent-state/claims/<worktree>.md`
+  declares scope, `session-start-summary.sh` surfaces it for every locked
+  worktree, `CLAUDE.md` instructs sessions to read it and route around
+  claimed paths. Soft/informational today; hard `PreToolUse` enforcement is
+  deferred (KANBAN backlog #7) until claim-cleanup discipline is proven out.
+  (b) — before reporting anything as "already done"/"still pending"/"frozen",
+  diff it against the actual current state of `main` (or the live site) —
+  don't relay a remembered or stated status as fact.
+- Refs: `docs/ARCHITECTURE.md` §13 "Declaring scope at lock time"; `docs/KANBAN.md`
+  backlog #7.
+
 ### 2026-07-25 — Blender USD/usdz export keeps the source texture codec (webp breaks Quick Look)
 - Context: regenerated `ensui-d70.usdz` via Blender headless after editing the
   `.glb` (added a cord canopy cap). Deployed it, and the user saw the whole

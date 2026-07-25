@@ -370,6 +370,27 @@ and the exit-code convention (0 = pass, non-zero = fail/not-done).
    we learn whether the system is improving.
 9. **Prefer the smallest change.** The whole apparatus exists to make minimal,
    verified edits — not to enable large ones faster.
+10. **The OS improves itself, continuously, at two different speeds.** Any
+    session that notices a gap in *this system* (not site content — the
+    hooks, scripts, docs, or conventions in `scripts/`, `docs/`, `.claude/`)
+    should fix it in the same session, not defer it to a future ask. But
+    "fix it" splits by risk, the same way site changes already split by risk
+    in `CLAUDE.md`:
+    - **Safe → adjust directly.** Additive, reversible, non-gating changes:
+      a new `SessionStart` hook section, a documentation clarification, a
+      new backlog item, a bug fix in a script with an obvious correct
+      behavior, a new lesson logged. Do it, verify it (run the script, check
+      the syntax), report what changed.
+    - **Risky or ambiguous → propose and ask first**, the same bar as any
+      other high-risk change: anything that could *gate or block* a future
+      session's actions (e.g. a `PreToolUse` hook that refuses edits —
+      see §13's hard-enforcement claim system, deliberately deferred for
+      this reason), anything that changes an existing policy's meaning
+      (what counts as "Validated?", a verification threshold, a protected
+      region), or anything whose blast radius isn't obviously contained.
+    - **Either way, log it in `docs/project-lessons.md`.** A safe fix made
+      without a trace is a fix the next session can't learn from; the lesson
+      log is what makes "improves itself" cumulative instead of one-off.
 
 If a future change would violate one of these, that is the signal to stop and
 reconsider the design — not to weaken the principle.
@@ -533,3 +554,51 @@ instead of trusting an agent to remember or to scroll to the right subsection. I
 does not gate anything and changes no site file; if it can't find its markers it
 says so loudly rather than silently showing nothing, in keeping with design
 principle 5 (§12).
+
+### Declaring scope at lock time — the claim file
+
+"Flag, don't edit" (above) and "Pending shared-file edits" are both
+*retrospective* — they record a shared-file need discovered mid-task, after work
+already happened. They don't help a **second, independently-opened session** —
+e.g. the user opens a fresh Claude Code window to work on something else while a
+background agent from an earlier dispatch is still running — know *what the
+still-running agent is allowed to touch* before that second session starts
+editing anything. That's a distinct, forward-looking problem: declaring scope
+*at* lock time, not flagging a collision after the fact.
+
+**The convention.** Whenever a session locks a git worktree for background or
+parallel work (`git worktree lock`, whether the worktree was created via the
+Agent tool's `isolation: "worktree"` or a manually-opened separate session), its
+first action after locking — before any edit — is to write a small claim file at
+`.agent-state/claims/<worktree-dir-name>.md` (matching the worktree's directory
+basename under `.claude/worktrees/`) stating, in plain markdown: the task in one
+line, the allowed scope (paths/globs it may touch), and anything explicitly
+forbidden. `.agent-state/` is already gitignored local run-memory (§7), so this
+is machine-local coordination state, not a committed artifact.
+
+**Surfacing.** `session-start-summary.sh` scans `.git/worktrees/*/locked` for
+every currently-locked worktree and prints that worktree's claim file verbatim
+(or a loud `NO CLAIM FILED — unknown scope` warning if one is missing) in a
+dedicated section, right after the worktree list. `CLAUDE.md` instructs the
+opening reply of every session to read that section and state plainly which
+paths are currently claimed by another live agent — and, if the user's request
+would touch a claimed path, to say so and propose a non-overlapping or
+read-only alternative instead of just proceeding.
+
+**Cleanup is best-effort, not safety-critical.** A claim file for a worktree
+that has since been unlocked or removed is simply never read again — the hook
+only inspects *currently-locked* worktrees, so a stale claim file left behind
+is inert rather than misleading. Deleting it when a worktree unlocks is good
+hygiene, not a requirement.
+
+**This is a soft signal today, not an enforced one.** Nothing currently stops a
+session from editing a claimed path — the claim file is informational, and the
+guarantee rests on every session actually reading and respecting it (the same
+trust model as the rest of this doc-driven system). A harder guarantee — a
+`PreToolUse` hook that inspects the target path of every `Edit`/`Write` call
+against active claim files and refuses the ones that collide — is a deliberate
+future step, not built yet (see `docs/KANBAN.md`). Soft was chosen first
+because it's low-risk and immediately useful, and because a hard block needs
+the claim-cleanup discipline above to actually be reliable first — an enforced
+block against a stale, un-cleaned-up claim would wrongly refuse legitimate
+work.

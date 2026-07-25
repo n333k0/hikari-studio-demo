@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# session-start-summary.sh — deterministic SessionStart print, three parts:
+# session-start-summary.sh — deterministic SessionStart print, four parts:
 #   1. active git worktrees (parallel agent dispatch may be in flight)
-#   2. pending shared-file edits flagged but not yet applied
-#   3. ready-to-review links: one per section with finished work, collapsed
+#   2. active agent claims: locked worktrees' declared scope, so a new
+#      session knows what NOT to touch and can suggest non-overlapping work
+#   3. pending shared-file edits flagged but not yet applied
+#   4. ready-to-review links: one per section with finished work, collapsed
 #      ("+N more") for sections with several pages of the same type — never
 #      an exhaustive per-page list.
 # Pure filesystem glob + git, no reasoning: the model's job is to render this
@@ -17,6 +19,30 @@ PAGES_BASE="https://n333k0.github.io/hikari-studio-demo"
 echo "--- Active git worktrees (parallel agent dispatch may be in flight - see docs/ARCHITECTURE.md sec 13) ---"
 git worktree list 2>/dev/null || echo "(git worktree list unavailable)"
 echo
+
+echo "--- Active agent claims (locked worktrees' declared scope - soft signal, not enforced) ---"
+found_locked=0
+if [ -d .git/worktrees ]; then
+  for lockfile in .git/worktrees/*/locked; do
+    [ -f "$lockfile" ] || continue
+    found_locked=1
+    wt_name="$(basename "$(dirname "$lockfile")")"
+    claim=".agent-state/claims/$wt_name.md"
+    echo "Locked worktree: $wt_name ($(cat "$lockfile"))"
+    if [ -f "$claim" ]; then
+      sed 's/^/  /' "$claim"
+    else
+      echo "  NO CLAIM FILED - unknown scope. Ask before assuming what's safe to edit,"
+      echo "  or treat every shared file as potentially in use until this agent files"
+      echo "  one at .agent-state/claims/$wt_name.md."
+    fi
+    echo
+  done
+fi
+if [ "$found_locked" -eq 0 ]; then
+  echo "(no locked worktrees - no other agent has declared itself active)"
+  echo
+fi
 
 echo "--- Pending shared-file edits, flagged but not yet applied (docs/site-structure.md) ---"
 if [ -f docs/site-structure.md ] && grep -q '<!-- PENDING-SHARED-EDITS:START -->' docs/site-structure.md; then
