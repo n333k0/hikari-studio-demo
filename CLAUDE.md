@@ -80,7 +80,12 @@ assets in `images/` and `media/`. No build step, no framework.
 - Verify build: `gh api repos/n333k0/hikari-studio-demo/pages/builds/latest --jq '.status'`
   (wait for `built`), then curl the live URL with a `?cb=timestamp` cache-buster.
 - Pages occasionally sits in `building` for several minutes — that's a GitHub-side delay, not an error.
-- End commit messages with the `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` trailer.
+- End commit messages with a `Co-Authored-By: Claude <model> <noreply@anthropic.com>`
+  trailer naming **the model that actually authored the commit** — the trailer is an
+  attribution, so a hardcoded name silently misattributes every commit once the model
+  changes (it read `Opus 4.8` well past that). Same rule as `docs/ARCHITECTURE.md` §13's
+  model floors: state what's durable, keep the volatile name where it's read fresh.
+  As of 2026-07-25 that's `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 
 ## Design system (from DESIGN.md, with this project's overrides)
 - **Accent: Hikari red `#E5381F`** (`--accent`/`-hover`/`-active` in `styles.css`) — actions,
