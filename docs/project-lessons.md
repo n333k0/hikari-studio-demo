@@ -20,6 +20,32 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — Blender USD/usdz export keeps the source texture codec (webp breaks Quick Look)
+- Context: regenerated `ensui-d70.usdz` via Blender headless after editing the
+  `.glb` (added a cord canopy cap). Deployed it, and the user saw the whole
+  lamp render solid violet/magenta in real AR Quick Look on their iPhone —
+  looked "fine" in every check I ran myself first, because I only verified
+  the `.glb` path (desktop Chrome / model-viewer), never the `.usdz` path.
+- Lesson: solid magenta/violet in an AR viewer is the standard "texture
+  failed to bind" fallback, not a lighting/material-color issue. Root cause
+  here: `bpy.ops.wm.usd_export` re-exports each texture using its *current*
+  Blender image codec, and the source `.glb`'s images were WebP (normal for
+  web glTF) — AR Quick Look/RealityKit does not reliably decode WebP inside
+  a `.usdz`, only PNG/JPEG. Also: simply setting `image.file_format = 'PNG'`
+  on a WebP-backed image datablock is not enough — Blender's own internal
+  texture-copy step still failed on it; the reliable fix was converting to
+  real PNG files on disk and loading them as fresh `bpy.data.images.load()`
+  datablocks swapped into the material's `TEX_IMAGE` nodes. Separately, the
+  zip-bundling step for direct `.usdz` export failed with a `chown` sandbox
+  permission error in this environment — exporting to plain `.usdc` (which
+  skips that step) then verifying with `pxr.Usd.Stage.Open` worked instead.
+- Apply: after ANY regeneration of a `.usdz`/`.glb` pair, unzip the `.usdz`
+  and confirm `textures/*` are `.png`/`.jpg` (`file textures/*`), and verify
+  the material's texture asset paths with `pxr.UsdShade` — don't just check
+  the `.glb` in a desktop browser and call the pair verified, since the two
+  files use different renderers with different codec support.
+- Refs: known-regressions.md → Ensui D70 AR model rendered solid violet.
+
 ### 2026-07-25 — AR/hardware features must be deployed to be verified, so deploy proactively
 - Context: fixed the Ensui D70 AR preview (camera framing was cropping the
   model; the pendant's cord had no ceiling-mount cap). All of it was fixable

@@ -23,6 +23,17 @@ task. Check this before "fixing" something that looks off — it may be known.
 - Malformed `clamp(min, pref, max)` where min > max silently resolves to `min`
   (it looked like a fixed 116px h1 on all widths). Always keep min ≤ max.
   Current hero h1: `clamp(4.6rem, 9vw, 11.6rem)`.
+- Ensui D70 AR model rendered solid violet/magenta in Quick Look on iPhone:
+  `models/ensui-d70.usdz` had been regenerated with Blender, which by default
+  re-exports textures in their *source* codec — the source `.glb` uses WebP,
+  and AR Quick Look/RealityKit cannot decode WebP textures in a USDZ, so it
+  falls back to its missing-texture magenta. Fix: convert textures to PNG
+  (`sips -s format png` or Pillow) and relink Blender's image datablocks to
+  those PNG files (swap `.image` on each `TEX_IMAGE` node to a freshly
+  `bpy.data.images.load()`-ed PNG — reassigning `file_format` on the original
+  webp-backed image alone does not work reliably) *before* exporting. Any
+  future `.glb` → `.usdz` regen must verify with `unzip -l`/`file` that
+  `textures/*.png` (not `.webp`) landed inside the `.usdz`.
 
 ## Known pre-existing issues (NOT introduced by current tasks)
 - Header icons, hamburger, and search are visual-only (no menu/search behavior).
