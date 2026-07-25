@@ -41,7 +41,7 @@
   display: grid;
   grid-template-columns: 1.3fr 1fr;
   gap: var(--sp-6);
-  padding-block: var(--sp-3) var(--sp-6);
+  padding-bottom: var(--sp-6);   /* no top padding: the gallery photo sits flush under the header, no gap */
   background: var(--surface-primary);
 }
 
