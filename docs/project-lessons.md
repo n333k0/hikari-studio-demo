@@ -20,6 +20,21 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — AR/hardware features must be deployed to be verified, so deploy proactively
+- Context: fixed the Ensui D70 AR preview (camera framing was cropping the
+  model; the pendant's cord had no ceiling-mount cap). All of it was fixable
+  and testable locally in a desktop browser — but the user still needed a
+  live URL to check the real AR session (Quick Look) on their phone, and had
+  to ask for it explicitly.
+- Lesson: no local/desktop tool can verify real-device AR, camera, GPS, or
+  other hardware-gated features — only the live site on the actual device
+  can. Waiting to be asked to deploy wastes a round-trip every time.
+- Apply: the moment a change touches an AR/camera/GPS/sensor feature, commit
+  + push + poll the Pages build + hand back the live URL immediately, without
+  being asked. Say clearly what you verified yourself vs. what only the user
+  can confirm on-device.
+- Refs: verification-policy.md → Hardware-dependent features.
+
 ### 2026-07-25 — `overflow-x:hidden` on `<body>` silently breaks `position:sticky`
 - Context: building the pinned scroll gallery + sticky purchase bar on the
   Ensui D70 product page — every `position:sticky` element (the pinned

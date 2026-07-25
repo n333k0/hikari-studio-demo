@@ -33,6 +33,19 @@ and the mobile crop focal point.
    until `built` (it can sit in `building` for minutes — that's a GitHub delay).
 3. Load the live URL with `?cb=<timestamp>` and confirm the change is live.
 
+## Hardware-dependent features (AR, camera, GPS...) — deploy without being asked
+A desktop/headless browser cannot verify these: real-device AR (Quick Look /
+Scene Viewer), camera access, geolocation, motion sensors. Local `file://` or
+`localhost` previews only prove the non-AR framing (e.g. the model-viewer
+canvas) — they say nothing about the actual AR session on a phone.
+- The moment a change touches one of these, run the full Deploy verification
+  flow above immediately, without waiting for the user to ask — don't leave it
+  sitting local-only.
+- Hand back the exact live URL (deep-linked to the page/section if possible)
+  so the user can open it on their phone. Say plainly which parts you could
+  verify yourself (desktop framing, console errors) vs. which parts only they
+  can confirm on-device.
+
 ## Tooling notes
 - The browser tool writes screenshots relative to a different root — save to an
   absolute scratchpad path.
