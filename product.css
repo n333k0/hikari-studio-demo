@@ -278,8 +278,17 @@
 .modal__copylink button { color: var(--accent); flex-shrink: 0; font-family: var(--font-sans); font-size: 1.4rem; }
 
 /* ---------- AR modal: model-viewer + progress bar + QR fallback ---------- */
+/* One `camera-orbit` radius has to look right on every screen, but model-viewer
+   derives the visible width from the canvas aspect — so the old fixed 380px
+   height on a fluid width framed completely differently on a phone than on a
+   desktop, and cropped the lamp on the phone. Pinning the aspect (and capping
+   the width) keeps the frame shape roughly constant, so one radius works. */
 .pdp-ar-viewer {
-  width: 100%; height: 380px; background: var(--surface-primary-alt);
+  width: 100%; max-width: 420px; margin-inline: auto;
+  /* `height:auto` is load-bearing: model-viewer ships `:host{height:150px}` in
+     its shadow DOM, which wins over `aspect-ratio` unless height is unset. */
+  height: auto; aspect-ratio: 4 / 5; max-height: 46vh;
+  background: var(--surface-primary-alt);
   --poster-color: transparent;
 }
 .mv-progress {

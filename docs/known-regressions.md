@@ -34,6 +34,20 @@ task. Check this before "fixing" something that looks off — it may be known.
   webp-backed image alone does not work reliably) *before* exporting. Any
   future `.glb` → `.usdz` regen must verify with `unzip -l`/`file` that
   `textures/*.png` (not `.webp`) landed inside the `.usdz`.
+  **Resolved 2026-07-25 for all three products** and the conversion is now a
+  committed, reusable step (`scripts/3d/export_usdz.py`) instead of a one-off,
+  which is what let it ship twice. It preserves each image's colorspace on the
+  swap — losing `Non-Color` on the normal/ORM maps silently wrecks shading.
+- A pendant lamp placed in AR rested **on the floor** with its cord standing up
+  in the air. No web AR runtime has a ceiling anchor or a placement-height API
+  (`ar-placement` is `floor|wall` only; Scene Viewer has no height intent
+  parameter; Quick Look ignores anchoring hints) — all three rest the model's
+  *lowest bounding-box point* on the detected plane. Fix: bake the drop into
+  the geometry (`scripts/3d/pendant_hang.py`) — lift the lamp to its hanging
+  height and hold the gap open with a tiny anchor mesh at y=0. The anchor must
+  be **visible** (the bbox is measured with `traverseVisible()`) and must not
+  be a flat transparent plane (`findBakedShadows`, `MIN_SHADOW_RATIO=100`,
+  would classify it as a baked floor shadow and drop it from the bbox).
 
 ## Known pre-existing issues (NOT introduced by current tasks)
 - Header icons, hamburger, and search are visual-only (no menu/search behavior).

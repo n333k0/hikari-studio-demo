@@ -96,12 +96,24 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
             https://n333k0.github.io/hikari-studio-demo/productos/ensui-d70/
             — future validators should still name which version they
             checked if this drifts again (local file vs. pushed/live URL).
-      - [ ] `productos/ensui-d50/` and `productos/ikigai-s/` USDZ files
-            re-exported with PNG textures (same fix as `77b514c`/`4ccdcc5`) —
-            confirmed 2026-07-25 that both still ship `.webp` textures inside
-            their `.usdz` (checked via `unzip -l models/<slug>.usdz`), so
-            both will show the same solid-violet Quick Look placeholder as
-            D70 did before its fix. Not yet fixed.
+      - [x] `productos/ensui-d50/` and `productos/ikigai-s/` USDZ files
+            re-exported with PNG textures — **done 2026-07-25**. All three
+            `.usdz` now verify `webp=0 png=3` via `unzip -l`. The conversion is
+            no longer a one-off: it lives in `scripts/3d/export_usdz.py`, which
+            is what stops it regressing a third time.
+      - [ ] **Pendant hang confirmed on a real device.** The D70 model was
+            re-authored 2026-07-25 so it *hangs* (shade at 1,85 m, canopy at
+            2,40 m, anchor at y=0) instead of resting on the floor — see
+            `scripts/3d/README.md`. Verified locally only: bbox `0 → 2.40 m`,
+            anchor survives the GLB round-trip, preview framing screenshotted
+            at 390×844 and 1440×900. Whether Quick Look / Scene Viewer really
+            rest `bbox.min.y` on the detected plane is **the premise of the
+            whole technique and is unproven on hardware.**
+      - [ ] **Ensui D50 still rests on the floor in AR.** It is a pendant
+            ("Colgante gota") but only the D70 got the hang treatment, by
+            decision, so the method could be proven on one product first. Apply
+            `pendant_hang.py` to it once the D70 is confirmed. Ikigai S is a
+            *lámpara de pie* and correctly stays floor-standing.
       Until all five are checked, treat this template as proven for **zero**
       product pages end-to-end (D70's AR was fixed once, but the underlying
       *pipeline step* that produced the webp bug hasn't been corrected at
@@ -150,32 +162,25 @@ rail. **No reviews anywhere on the real site** — do not add a reviews UI.
       - **"Ver en tu espacio" (AR)** — AR pipeline **built and code-reviewed**
         (2026-07-24), not a placeholder — but **not yet confirmed on a real
         device**; see **Validated?** above before treating this as proven.
-        Pipeline, run once per product:
-        1. `mcp__claude_ai_Higgsfield__generate_3d` (model
-           `tripo_h3_1_image_to_3d`, `auto_size:true`, `texture:true`,
-           `pbr:true`) on the cleanest single studio photo → raw GLB.
-           Costs ~9 Higgsfield credits/product (balance: check
-           `mcp__claude_ai_Higgsfield__balance` first). Multi-view models
-           (`multi_image_to_3d`) are better if a product actually has 2-4
-           clean angle shots — Ensui D70's other photos were lifestyle/detail
-           crops, not usable angles, so single-image was used.
-        2. `npx @gltf-transform/cli optimize <in> <out> --texture-size 1024
-           --texture-compress webp --simplify-ratio 0.03 --simplify-error
-           0.001 --compress false` — raw Tripo output was 57MB (1M
-           vertices); optimized down to ~1.8MB. `--compress false` matters:
-           it skips Draco/meshopt so Blender can still import the result.
-        3. Blender (already installed locally, headless
-           `blender --background --python script.py`) imports the optimized
-           GLB, **rescales it to the product's real listed dimensions**
-           (don't trust the AI's own scale guess — Ensui D70 came out ~1.08m
-           when it's actually Ø0.70m), recenters/drops to floor, then
-           exports both a final GLB and a `.usdz` via `bpy.ops.wm.usd_export`
-           (Blender's built-in USD exporter — no external converter needed).
-           Script kept at
-           `/private/tmp/.../scratchpad/glb_to_usdz.py` in the session that
-           built it; rewrite it fresh next time rather than hunting for that
-           temp path.
+        **The pipeline now lives in [`scripts/3d/README.md`](../scripts/3d/README.md)
+        with committed, runnable scripts** (`pendant_hang.py`,
+        `export_usdz.py`) — not as prose here. It used to be described here
+        with the Blender script left in a `/private/tmp` scratchpad and a note
+        to "rewrite it fresh next time"; that is precisely how the WebP/USDZ
+        violet-texture bug shipped in two more products after being fixed
+        once. Read that README before touching any model. In short:
+        1. Higgsfield `generate_3d` (`tripo_h3_1_image_to_3d`) on the cleanest
+           studio photo → raw GLB, ~9 credits/product.
+        2. `npx @gltf-transform/cli optimize` down to ~1.8MB.
+        3. Blender rescales to the product's **real listed dimensions** (don't
+           trust the AI's scale guess — the D70 came out ~1.08m when it's
+           actually Ø0.70m), and — for a **pendant** — lifts the lamp to its
+           hanging height with an anchor mesh at y=0, because no web AR
+           runtime can anchor to a ceiling and all of them rest the model's
+           lowest bounding-box point on the detected floor.
         4. Both files ship under `models/<slug>.glb` + `models/<slug>.usdz`.
+           The GLB keeps WebP textures (small, browsers read it); the USDZ
+           **must** be PNG or Quick Look renders it solid violet.
         5. In the product page: `<model-viewer>` (loaded from
            `unpkg.com/@google/model-viewer`, MIT-licensed, same
            CDN-dependency pattern as Google Fonts) with `src` (GLB, Android

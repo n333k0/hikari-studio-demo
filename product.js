@@ -1,10 +1,29 @@
 (function () {
   /* ---------- Modals (gallery lightbox / compartir / medios de envío / AR) ---------- */
+  /* A <model-viewer> that boots inside a display:none modal has no size to lay
+     out against, and auto-rotate leaves it spun wherever the last visit ended.
+     Re-assert the authored framing once the panel is actually on screen, so the
+     modal always opens on the same composed shot. */
+  function reframeViewer(mv) {
+    requestAnimationFrame(function () {
+      if (typeof mv.updateFraming !== 'function') return;
+      Promise.resolve(mv.updateComplete)
+        .then(function () { return mv.updateFraming(); })
+        .then(function () {
+          if (typeof mv.resetTurntableRotation === 'function') mv.resetTurntableRotation();
+          mv.cameraTarget = mv.getAttribute('camera-target');
+          mv.cameraOrbit = mv.getAttribute('camera-orbit');
+          mv.jumpCameraToGoal();
+        });
+    });
+  }
   function openModal(id) {
     var modal = document.getElementById(id);
     if (!modal) return;
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
+    var mv = modal.querySelector('model-viewer');
+    if (mv) reframeViewer(mv);
   }
   function closeModal(modal) {
     modal.hidden = true;

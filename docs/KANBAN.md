@@ -15,21 +15,30 @@ cleared, done) — same rule as `docs/site-structure.md`.
 - **Phase 1 product-page template validation.** Full checklist lives in
   `docs/site-structure.md` → "Planned pages / phases" → Phase 1 →
   **Validated?**. Currently **not yet validated**. Outstanding: AR tested on
-  a real iOS device, AR tested on a real Android device, the built page
-  manually reviewed end-to-end by the user, **and** the D50/Ikigai S USDZ
-  webp-texture bug fixed (confirmed present 2026-07-25 — see
-  site-structure.md). Per the rule in `docs/site-structure.md` → "How to use
-  this file," no session should propose building the remaining ~27 product
-  pages until these are checked off with evidence. Live URL to test AR on a
-  real phone: https://n333k0.github.io/hikari-studio-demo/productos/ensui-d70/
-  (D50/Ikigai S will show the known violet-placeholder bug in Quick Look
-  until their USDZ is re-exported with PNG textures).
+  a real iOS device, AR tested on a real Android device, and the built page
+  manually reviewed end-to-end by the user. The D50/Ikigai S USDZ
+  webp-texture bug is **fixed** (2026-07-25, all three verify `webp=0 png=3`).
+  Per the rule in `docs/site-structure.md` → "How to use this file," no session
+  should propose building the remaining ~27 product pages until these are
+  checked off with evidence. Live URL to test AR on a real phone:
+  https://n333k0.github.io/hikari-studio-demo/productos/ensui-d70/
+
+- **Pendant hang, unproven on hardware (new 2026-07-25).** The D70 model now
+  carries its own 1,85 m drop plus a y=0 anchor so AR shows it *hanging*
+  instead of resting on the floor (`scripts/3d/pendant_hang.py`). The premise —
+  that Quick Look / Scene Viewer rest `bbox.min.y` on the detected plane — has
+  never been confirmed on a device in this project. Confirm on the D70 before
+  applying it to any other pendant. If it fails, the CSS/JS/framing half of the
+  change stands on its own and only `models/` needs reverting.
 
 ## Backlog (priority order)
 
-1. **Fix the D50/Ikigai S USDZ texture bug** (re-export with PNG textures,
-   same fix as `4ccdcc5`) — the concrete unblock for the validation item
-   above.
+1. **Apply the pendant hang to Ensui D50** — it is a colgante but still rests
+   on the floor in AR; only the D70 got the treatment, so the method could be
+   proven on one product first. `blender --background --python
+   scripts/3d/pendant_hang.py -- --glb models/ensui-d50.glb ...` — note the
+   D50 model has **no cord geometry at all**, so one has to be borrowed from
+   the D70 GLB or synthesised. **Blocked** on the D70 confirming on hardware.
 2. **Source a real home-page card for Ikigai S** (price/copy from the live
    site) — it has no card in the "Novedades" carousel yet, unlike D50 which
    already had one with a placeholder `href`.

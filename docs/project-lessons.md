@@ -20,6 +20,59 @@ Promote anything structural into the right home doc too:
 
 ## Log
 
+### 2026-07-25 — Web AR anchors bbox-min-Y to the floor; a pendant must carry its own drop
+- Context: "Ver en tu espacio" on the Ensui D70 put the lamp on the floor in the
+  middle of the room with its cord standing up in the air. The model was built
+  shade-at-the-bottom with the cord pointing up — geometrically inverted for
+  something that hangs.
+- Lesson: there is no ceiling anchor and no placement-height API anywhere in web
+  AR (`ar-placement` is `floor|wall`; Scene Viewer has no height intent
+  parameter; Quick Look ignores anchoring hints). All three runtimes rest the
+  model's *lowest bounding-box point* on the detected plane, so hanging height
+  is a property of the **geometry**, not of any attribute. Before reaching for a
+  config flag, check whether the platform has the concept at all — here three
+  separate feature requests had already been declined upstream.
+- Apply: `scripts/3d/pendant_hang.py` — lift the lamp to its hanging height and
+  hold the gap open with a small anchor mesh at y=0. The anchor must be
+  **visible** (model-viewer measures the bbox with `traverseVisible()`) and must
+  **not** be a flat transparent plane (`findBakedShadows`, `MIN_SHADOW_RATIO=100`,
+  would classify it as a baked floor shadow and drop it from the bbox). Assert
+  `bbox.min == 0` after the transform — that assertion is the fix's only canary.
+  Also tell the user to point at the floor and *then look up*, or a correct
+  placement reads as a failure.
+- Refs: `scripts/3d/README.md`; known-regressions.md; model-viewer issues #998,
+  #3446, #2930.
+
+### 2026-07-25 — Throwing away a pipeline script is how the same bug ships twice
+- Context: the WebP→USDZ violet-texture bug was fixed once for the D70, then
+  shipped again in both products built after it. The cause wasn't the fix being
+  wrong — it was that `docs/site-structure.md` recorded the pipeline as prose
+  plus a dead `/private/tmp/...` path and told the next session to "rewrite it
+  fresh next time."
+- Lesson: a fix applied to an *artifact* doesn't fix the *step that produced
+  it*. If a build step is documented as prose rather than committed code, every
+  future run re-derives it — and re-derives its bugs. Prose is a description of
+  a pipeline; a committed script is the pipeline.
+- Apply: `scripts/3d/` is versioned (`pendant_hang.py`, `export_usdz.py`,
+  `_common.py`, `README.md`), with the known-regression check baked in as an
+  assertion rather than a note. `docs/site-structure.md` points at it instead of
+  restating it. When a bug is found in generated output, ask whether the
+  generator is in the repo — if not, that's the actual finding.
+- Refs: `scripts/3d/README.md`; known-regressions.md; commits `4ccdcc5`, `ffa4403`.
+
+### 2026-07-25 — `depsgraph` staleness makes Blender transforms silently no-op
+- Context: `pendant_hang.py` reported lifting the lamp and shortening the cord,
+  but the final bounding box was unchanged. Assigning `ob.location` does not
+  update `ob.matrix_world` until the depsgraph re-evaluates, so every
+  measurement taken right after a move read the *old* position — the cord got
+  scaled about the wrong pivot and the verification bbox was a lie.
+- Lesson: in Blender scripts, a measurement immediately after a mutation is
+  reading stale state unless you flush it. This fails *quietly* and, worse, the
+  self-verification prints confidently wrong numbers.
+- Apply: `bpy.context.view_layer.update()` inside every bbox helper
+  (`_common.sync()`), not at call sites where it's easy to forget.
+- Refs: `scripts/3d/_common.py`.
+
 ### 2026-07-25 — A tool nobody links to doesn't exist: surface system surfaces in the status
 - Context: the dashboard ("General y sus Soldados") was built and running on
   `localhost:8765`, but the `SessionStart` hook never mentioned it, so the
